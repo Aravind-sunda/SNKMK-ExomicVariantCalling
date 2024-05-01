@@ -1,0 +1,37 @@
+# Run this command in the directory in which you want to create the snakemake pipeline
+mkdir -m 755 -p .tests/integration .tests/unit \
+workflow/rules workflow/envs workflow/scripts workflow/notebooks workflow/report \
+images config results resources
+
+touch workflow/Snakefile
+
+# These commands create the files in main directory
+touch README.md
+touch LICENSE.md
+
+# Example Directory Substructure
+├── .gitignore
+├── README.md
+├── LICENSE.md
+├── workflow
+│   ├── rules
+|   │   ├── module1.smk
+|   │   └── module2.smk
+│   ├── envs
+|   │   ├── tool1.yaml
+|   │   └── tool2.yaml
+│   ├── scripts
+|   │   ├── script1.py
+|   │   └── script2.R
+│   ├── notebooks
+|   │   ├── notebook1.py.ipynb
+|   │   └── notebook2.r.ipynb
+│   ├── report
+|   │   ├── plot1.rst
+|   │   └── plot2.rst
+|   └── Snakefile
+├── config
+│   ├── config.yaml
+│   └── some-sheet.tsv
+├── results
+└── resources
