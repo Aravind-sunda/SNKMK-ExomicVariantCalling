@@ -51,7 +51,7 @@ rule cram_to_bam:
         cram = f"{inputDataPath}/{sample}.aligned.cram",
         reference = f"{referencePath}/genome.fa"
     output:
-    bam_processed = f"{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam",
+        bam_processed = f"{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam",
         bam_index = f"{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bai"
     params:
         memory = "8G"
