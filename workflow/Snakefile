@@ -6,6 +6,7 @@
 
 # --- Variables --- #
 samples = ["BOSTON_CJD29_CJD29","BOSTON_CJD40_CJD40"]  # Add your sample names here
+
 #When scaling up use the samples filename
 # with open(sample_names_file) as f:
 #     samples = [line.strip() for line in f]
@@ -15,11 +16,11 @@ resultPath = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240
 referencePath = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/reference"
 resultQualityPath = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/results/QC"
 
+sample = expand("{resultPath}/{samples}/{samples}.aligned_fixmates_sorted.bam", samples=samples)
+
 rule all:
     input:
-        expand("{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam", sample=samples, resultPath = resultPath)
-
-
+        sample
 
 # --- Download Rules --- #
 ## getreference: Downloads the reference used in performing this pipeline for the variables. 
@@ -28,7 +29,7 @@ rule getreference:
         "genome.fa",
         "genome.fa.fai"
     shell:
-        f"""
+        """
         # Using Wget to download the reference genome used in the current run of the data
         wget -P {referencePath} https://dl.dnanex.us/F/D/734xvkZG02bbF5vF1bZ93G03ZK1g6x64ffVYkyBk/h38flat.fasta-index.tar.gz 
         tar -xvzf {referencePath}/h38flat.fasta-index.tar.gz
@@ -48,11 +49,11 @@ rule create_directories:
 ## cram_to_bam: Performs conversion to bam,fixingmates,sorting and creating bam index 
 rule cram_to_bam:
     input:
-        cram = f"{inputDataPath}/{sample}.aligned.cram",
-        reference = f"{referencePath}/genome.fa"
+        cram = "{inputDataPath}/{sample}.aligned.cram",
+        reference = "{referencePath}/genome.fa"
     output:
-        bam_processed = f"{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam",
-        bam_index = f"{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bai"
+        bam_processed = "{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam",
+        bam_index = "{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bai"
     params:
         memory = "8G",
         threads = "8",
