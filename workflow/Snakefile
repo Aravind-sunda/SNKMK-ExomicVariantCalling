@@ -1,8 +1,8 @@
 # Snakefile
 
 # --- Modules --- #
-module load htslib/1.19.1
-module load samtools/1.19.2
+# module load htslib/1.19.1
+# module load samtools/1.19.2
 
 # --- Variables --- #
 samples = ["BOSTON_CJD29_CJD29","BOSTON_CJD40_CJD40"]  # Add your sample names here
@@ -16,19 +16,23 @@ referencePath = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20
 resultQualityPath = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/results/QC"
 
 rule all:
-input: 
+    input:
+        expand(f"{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam", sample=samples, resultPath = resultPath)
+
 
 
 # --- Download Rules --- #
 ## getreference: Downloads the reference used in performing this pipeline for the variables. 
 rule getreference:
-    input:
     output:
-        "reference_genome.fasta"
+        "genome.fa",
+        "genome.fa.fai"
     shell:
-        """
+        f"""
         # Using Wget to download the reference genome used in the current run of the data
-        samtools faidx genome.fa genome.fa.fai
+        wget -P {referencePath} https://dl.dnanex.us/F/D/734xvkZG02bbF5vF1bZ93G03ZK1g6x64ffVYkyBk/h38flat.fasta-index.tar.gz 
+        tar -xvzf {referencePath}/h38flat.fasta-index.tar.gz
+        # samtools faidx genome.fa genome.fa.fai
         """
 
 # --- Pipeline Rules --- #
@@ -41,35 +45,31 @@ rule create_directories:
         mkdir -p {output}
         """
 
-
 ## cram_to_bam: Performs conversion to bam,fixingmates,sorting and creating bam index 
 rule cram_to_bam:
     input:
-        cram="{data}/{sample}.aligned.cram",
-        reference="{reference}/genome.fa"
+        cram = f"{inputDataPath}/{sample}.aligned.cram",
+        reference = f"{referencePath}/genome.fa"
     output:
-        bam_processed = "{results}/{sample}.aligned_fixmates_sorted.bam"
-        bam_index = "{results}/{sample}_aligned_sorted.bai"
+        bam_processed = f"{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam"
+        bam_index = f"{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bai"
+    params:
+        memory = "8G"
+        threads = "8"
+        filetype = "BAM"
     shell:
     """
-    samtools sort -n -@ 8 -m 8G -O BAM BOSTON_CJD29_CJD29.aligned.cram | \
-    samtools fixmate -m -O BAM - - | \
-    samtools sort -@ 8 -m 8G -O BAM -o BOSTON_CJD29_CJD29.aligned_fixmates_sorted.bam
+    samtools sort -n -@ {params.threads} -m {params.memory} -O {params.filetype} {input.cram} | \
+    samtools fixmate -m -O {params.filetype} - - | \
+    samtools sort -@ {params.threads} -m {params.memory} -O {params.filetype} -o {output.bam_processed}
 
-    samtools index BOSTON_CJD29_CJD29.aligned_fixmates_sorted.bam
+    samtools index {output.bam_processed}
     """
 
-rule GATK_preprocessing:
-    input:
-    output:
-    shell:
-
-
-
-
-
-
-
+# rule GATK_preprocessing:
+#     input:
+#     output:
+#     shell:
 
 # --- Notes --- #
 #1) Using f"" for snakemake varaibles enclose them in double {{}}. 
