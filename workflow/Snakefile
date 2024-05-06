@@ -16,7 +16,7 @@ resultPath = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240
 referencePath = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/reference"
 resultQualityPath = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/results/QC"
 
-sample = expand(, samples=samples, resultPath=resultPath)
+# sample = expand(, samples=samples, resultPath=resultPath)
 
 sample = expand({samples},samples=samples)
 rule all:
