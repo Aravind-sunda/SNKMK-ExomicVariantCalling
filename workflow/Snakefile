@@ -1,0 +1,78 @@
+# Snakefile
+
+# --- Modules --- #
+module load htslib/1.19.1
+module load samtools/1.19.2
+
+# --- Variables --- #
+samples = ["BOSTON_CJD29_CJD29","BOSTON_CJD40_CJD40"]  # Add your sample names here
+#When scaling up use the samples filename
+# with open(sample_names_file) as f:
+#     samples = [line.strip() for line in f]
+
+inputDataPath = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/data"
+resultPath = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/results"
+referencePath = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/reference"
+resultQualityPath = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/results/QC"
+
+rule all:
+input: 
+
+
+# --- Download Rules --- #
+## getreference: Downloads the reference used in performing this pipeline for the variables. 
+rule getreference:
+    input:
+    output:
+        "reference_genome.fasta"
+    shell:
+        """
+        # Using Wget to download the reference genome used in the current run of the data
+        samtools faidx genome.fa genome.fa.fai
+        """
+
+# --- Pipeline Rules --- #
+## create_directories: Creates the directory for the results of various samples. 
+rule create_directories:
+    output:
+        directory("{resultPath}/{sample}")
+    shell:
+        """
+        mkdir -p {output}
+        """
+
+
+## cram_to_bam: Performs conversion to bam,fixingmates,sorting and creating bam index 
+rule cram_to_bam:
+    input:
+        cram="{data}/{sample}.aligned.cram",
+        reference="{reference}/genome.fa"
+    output:
+        bam_processed = "{results}/{sample}.aligned_fixmates_sorted.bam"
+        bam_index = "{results}/{sample}_aligned_sorted.bai"
+    shell:
+    """
+    samtools sort -n -@ 8 -m 8G -O BAM BOSTON_CJD29_CJD29.aligned.cram | \
+    samtools fixmate -m -O BAM - - | \
+    samtools sort -@ 8 -m 8G -O BAM -o BOSTON_CJD29_CJD29.aligned_fixmates_sorted.bam
+
+    samtools index BOSTON_CJD29_CJD29.aligned_fixmates_sorted.bam
+    """
+
+rule GATK_preprocessing:
+    input:
+    output:
+    shell:
+
+
+
+
+
+
+
+
+# --- Notes --- #
+#1) Using f"" for snakemake varaibles enclose them in double {{}}. 
+#2) When using shell commands, do not use f"".
+
+# Target Rule. Remember according to Snakemake syntax it should always be at the first so that when combining several workflows together it can be done properly. 
