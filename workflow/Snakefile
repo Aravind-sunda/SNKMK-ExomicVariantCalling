@@ -16,11 +16,12 @@ resultPath = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240
 referencePath = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/reference"
 resultQualityPath = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/results/QC"
 
-sample = expand(f"{{resultPath}}/{samples}/{samples}.aligned_fixmates_sorted.bam", samples=samples, resultPath=resultPath)
+sample = expand(, samples=samples, resultPath=resultPath)
 
+sample = expand({samples},samples=samples)
 rule all:
     input:
-        sample
+        "{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam"
 
 # --- Download Rules --- #
 ## getreference: Downloads the reference used in performing this pipeline for the variables. 
