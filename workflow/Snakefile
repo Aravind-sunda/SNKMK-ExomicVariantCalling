@@ -54,8 +54,8 @@ rule cram_to_bam:
         bam_processed = f"{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam",
         bam_index = f"{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bai"
     params:
-        memory = "8G"
-        threads = "8"
+        memory = "8G",
+        threads = "8",
         filetype = "BAM"
     shell:
         """
