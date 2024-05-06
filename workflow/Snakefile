@@ -58,13 +58,13 @@ rule cram_to_bam:
         threads = "8"
         filetype = "BAM"
     shell:
-    """
-    samtools sort -n -@ {params.threads} -m {params.memory} -O {params.filetype} {input.cram} | \
-    samtools fixmate -m -O {params.filetype} - - | \
-    samtools sort -@ {params.threads} -m {params.memory} -O {params.filetype} -o {output.bam_processed}
+        """
+        samtools sort -n -@ {params.threads} -m {params.memory} -O {params.filetype} {input.cram} | \
+        samtools fixmate -m -O {params.filetype} - - | \
+        samtools sort -@ {params.threads} -m {params.memory} -O {params.filetype} -o {output.bam_processed}
 
-    samtools index {output.bam_processed}
-    """
+        samtools index {output.bam_processed}
+        """
 
 # rule GATK_preprocessing:
 #     input:
