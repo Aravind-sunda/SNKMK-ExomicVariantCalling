@@ -18,7 +18,8 @@ resultQualityPath = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCallin
 
 # sample = expand(, samples=samples, resultPath=resultPath)
 
-sample = expand({samples},samples=samples)
+sample = expand({samples},samples=["BOSTON_CJD29_CJD29","BOSTON_CJD40_CJD40"])
+
 rule all:
     input:
         "{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam"
