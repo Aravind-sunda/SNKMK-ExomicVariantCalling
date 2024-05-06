@@ -17,7 +17,7 @@ resultQualityPath = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCallin
 
 rule all:
     input:
-        expand(f"{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam", sample=samples, resultPath = resultPath)
+        expand("{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam", sample=samples, resultPath = resultPath)
 
 
 
