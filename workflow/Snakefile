@@ -18,22 +18,20 @@ samples = ["BOSTON_CJD29_CJD29","BOSTON_CJD40_CJD40"]  # Add your sample names h
 
 rule all:
     input:
-        # bam_processed = expand("{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam",sample = samples)   
         bam_processed = [f"results/{sample}/{sample}.aligned_fixmates_sorted.bam" for sample in samples],
         bam_index = [f"results/{sample}/{sample}.aligned_fixmates_sorted.bai" for sample in samples]
-        # "{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam"
 
 # --- Download Rules --- #
 ## getreference: Downloads the reference used in performing this pipeline for the variables. 
 rule getreference:
     output:
-        "genome.fa",
-        "genome.fa.fai"
+        "reference/genome.fa",
+        "reference/genome.fa.fai"
     shell:
         """
         # Using Wget to download the reference genome used in the current run of the data
-        wget -P {referencePath} https://dl.dnanex.us/F/D/734xvkZG02bbF5vF1bZ93G03ZK1g6x64ffVYkyBk/h38flat.fasta-index.tar.gz 
-        tar -xvzf {referencePath}/h38flat.fasta-index.tar.gz
+        wget -P reference/ https://dl.dnanex.us/F/D/734xvkZG02bbF5vF1bZ93G03ZK1g6x64ffVYkyBk/h38flat.fasta-index.tar.gz 
+        tar -xvzf reference/h38flat.fasta-index.tar.gz
         # samtools faidx genome.fa genome.fa.fai
         """
 
@@ -53,8 +51,6 @@ rule cram_to_bam:
         cram = [f"data/{sample}.aligned.cram" for sample in samples],
         reference = "reference/genome.fa"
     output:
-        # bam_processed = "{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam",
-        # bam_index = "{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bai"
         bam_processed = [f"results/{sample}/{sample}.aligned_fixmates_sorted.bam" for sample in samples],
         bam_index = [f"results/{sample}/{sample}.aligned_fixmates_sorted.bai" for sample in samples]
     params:
