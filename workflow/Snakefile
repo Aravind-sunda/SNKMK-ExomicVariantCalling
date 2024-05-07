@@ -50,7 +50,7 @@ rule create_directories:
 ## cram_to_bam: Performs conversion to bam,fixingmates,sorting and creating bam index 
 rule cram_to_bam:
     input:
-        cram = "data/{sample}.aligned.cram",
+        cram = [f"data/{sample}.aligned.cram" for sample in samples],
         reference = "reference/genome.fa"
     output:
         # bam_processed = "{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam",
