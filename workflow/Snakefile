@@ -9,10 +9,10 @@ samples = ["BOSTON_CJD29_CJD29","BOSTON_CJD40_CJD40"]  # Add your sample names h
 
 # names = expand({name},name = samples)
 
-inputDataPath = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/data"
-resultPath = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/results"
-referencePath = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/reference"
-resultQualityPath = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/results/QC"
+inputDataPath = path("/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/data")
+resudeclaltPath = path("/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/results")
+referencePath = path("/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/reference")
+resultQualityPath = path("/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/results/QC")
 
 
 rule all:
