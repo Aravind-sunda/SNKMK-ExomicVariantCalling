@@ -7,6 +7,8 @@
 # --- Variables --- #
 samples = ["BOSTON_CJD29_CJD29","BOSTON_CJD40_CJD40"]  # Add your sample names here
 
+# names = expand({name},name = samples)
+
 inputDataPath = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/data"
 resultPath = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/results"
 referencePath = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/reference"
@@ -15,6 +17,10 @@ resultQualityPath = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCallin
 
 rule all:
     input:
+        # bam_processed = expand("{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam",sample = samples)   
+        bam_processed = [f"{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam" for sample in samples],
+        bam_index = [f"{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bai" for sample in samples]
+        # "{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam"
 
 # --- Download Rules --- #
 ## getreference: Downloads the reference used in performing this pipeline for the variables. 
@@ -34,7 +40,7 @@ rule getreference:
 ## create_directories: Creates the directory for the results of various samples. 
 rule create_directories:
     output:
-        directory("{resultPath}/{sample}")
+        directory(f"{resultPath}/{sample}" for sample in samples)
     shell:
         """
         mkdir -p {output}
@@ -46,8 +52,10 @@ rule cram_to_bam:
         cram = "{inputDataPath}/{sample}.aligned.cram",
         reference = "{referencePath}/genome.fa"
     output:
-        bam_processed = "{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam",
-        bam_index = "{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bai"
+        # bam_processed = "{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam",
+        # bam_index = "{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bai"
+        bam_processed = [f"{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam" for sample in samples]
+        bam_index = [f"{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bai" for sample in samples]
     params:
         memory = "8G",
         threads = "8",
