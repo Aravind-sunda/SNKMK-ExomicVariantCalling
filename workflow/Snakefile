@@ -5,21 +5,22 @@
 # module load samtools/1.19.2
 
 # --- Variables --- #
+workdir: "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
 samples = ["BOSTON_CJD29_CJD29","BOSTON_CJD40_CJD40"]  # Add your sample names here
 
 # names = expand({name},name = samples)
 
-inputDataPath = path("/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/data")
-resudeclaltPath = path("/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/results")
-referencePath = path("/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/reference")
-resultQualityPath = path("/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/results/QC")
+# inputDataPath = path("/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/data")
+# resultPath = path("/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/results")
+# referencePath = path("/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/reference")
+# resultQualityPath = path("/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/results/QC")
 
 
 rule all:
     input:
         # bam_processed = expand("{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam",sample = samples)   
-        bam_processed = [f"{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam" for sample in samples],
-        bam_index = [f"{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bai" for sample in samples]
+        bam_processed = [f"results/{sample}/{sample}.aligned_fixmates_sorted.bam" for sample in samples],
+        bam_index = [f"results/{sample}/{sample}.aligned_fixmates_sorted.bai" for sample in samples]
         # "{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam"
 
 # --- Download Rules --- #
@@ -40,7 +41,7 @@ rule getreference:
 ## create_directories: Creates the directory for the results of various samples. 
 rule create_directories:
     output:
-        directory(f"{resultPath}/{sample}" for sample in samples)
+        directory(f"results/{sample}" for sample in samples)
     shell:
         """
         mkdir -p {output}
@@ -49,17 +50,18 @@ rule create_directories:
 ## cram_to_bam: Performs conversion to bam,fixingmates,sorting and creating bam index 
 rule cram_to_bam:
     input:
-        cram = "{inputDataPath}/{sample}.aligned.cram",
-        reference = "{referencePath}/genome.fa"
+        cram = "data/{sample}.aligned.cram",
+        reference = "reference/genome.fa"
     output:
         # bam_processed = "{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam",
         # bam_index = "{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bai"
-        bam_processed = [f"{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam" for sample in samples],
-        bam_index = [f"{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bai" for sample in samples]
+        bam_processed = [f"results/{sample}/{sample}.aligned_fixmates_sorted.bam" for sample in samples],
+        bam_index = [f"results/{sample}/{sample}.aligned_fixmates_sorted.bai" for sample in samples]
     params:
         memory = "8G",
         threads = "8",
-        filetype = "BAM"
+        filetype = "BAM",
+        
     shell:
         """
         samtools sort -n -@ {params.threads} -m {params.memory} -O {params.filetype} {input.cram} | \
