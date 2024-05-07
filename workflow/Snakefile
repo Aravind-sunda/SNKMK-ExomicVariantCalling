@@ -54,7 +54,7 @@ rule cram_to_bam:
     output:
         # bam_processed = "{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam",
         # bam_index = "{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bai"
-        bam_processed = [f"{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam" for sample in samples]
+        bam_processed = [f"{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bam" for sample in samples],
         bam_index = [f"{resultPath}/{sample}/{sample}.aligned_fixmates_sorted.bai" for sample in samples]
     params:
         memory = "8G",
