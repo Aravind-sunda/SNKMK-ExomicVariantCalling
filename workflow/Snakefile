@@ -8,26 +8,18 @@ names = ["BOSTON_CJD29_CJD29", "BOSTON_CJD40_CJD40"]  # Add your sample names he
 rule all:
     input:
         bam_processed = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bai", sample = names),
-        bam_index = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam", sample = names),
-        # dir = expand("results/{sample}",sample = names)
-        # cannot use directory() in inputs
+        bam_index = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam", sample = names)
 
 rule getreference:
     output:
-        "reference/genome.fa",
-        "reference/genome.fa.fai"
+        reference="reference/genome.fa",
+        reference_idx="reference/genome.fa.fai"
     shell:
         """
         wget -P reference/ https://dl.dnanex.us/F/D/734xvkZG02bbF5vF1bZ93G03ZK1g6x64ffVYkyBk/h38flat.fasta-index.tar.gz 
         tar -xvzf reference/h38flat.fasta-index.tar.gz
         """
-
-# rule create_directories:
-#     output:
-#         dir = directory(expand("results/{sample}",sample = names))
-#     shell:
-#         "mkdir -p {output.dir}"
-
+        
 rule cram_to_bam:
     input:
         cram="data/{sample}.aligned.cram",
@@ -35,9 +27,12 @@ rule cram_to_bam:
     output:
         bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam",
         bam_index="results/{sample}/{sample}.aligned_fixmates_sorted.bai"
+        # Technically not used in the next rule. The tool however used this. Define in rule all?
     params:
         memory="8G",
         threads=8
+    envmodules:
+        ""
     shell:
         """
         samtools sort -n -@ {params.threads} -m {params.memory} -O BAM {input.cram} | \
@@ -45,3 +40,53 @@ rule cram_to_bam:
         samtools sort -@ {params.threads} -m {params.memory} -O BAM -o {output.bam_processed} -
         samtools index {output.bam_processed}
         """
+
+# rule mark_duplicates:
+#     input:
+#         bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam"
+#     output:
+#         bam_dedup="results/{sample}/{sample}.aligned_dedup.bam",
+#         dedup_metrics="results/{sample}/{sample}.dedupmetrics.txt"
+#         # Not used in the next file. Define in rule all?
+#     params:
+#     shell:
+#         """
+#         gatk MarkDuplicatesSpark -I {input.bam_processed} -O {output.bam_dedup} --metrics-file {output.dedup_metrics} --QUIET
+#         """
+
+# rule base_recalibration:
+#     input:
+#         bam_dedup="results/{sample}/{sample}.aligned_dedup.bam"
+#         reference="reference/genome.fa"
+#     output:
+#         recal_table="results/{sample}/{sample}.recal.table"
+#         bam_bqsr=""
+#     params:
+#     shell:
+#         """
+#         gatk BaseRecalibrator --input {input.bam_dedup} \
+#         --reference {input.reference} \
+#         --known-sites ${reference}/dbsnp144.b38.vcf \
+#         --intervals ${reference}/xgen_plus_spikein.b38.bed \
+#         --interval-padding 50 \
+#         --output {output.recal_table} --QUIET \
+#         """
+
+
+# rule call_variants:
+#     input:
+#     output:
+#     params:
+#     shell:
+
+# rule genotyping:
+#     input:
+#     output:
+#     params:
+#     shell:
+
+# rule annotation:
+#     input:
+#     output:
+#     params:
+#     shell:
