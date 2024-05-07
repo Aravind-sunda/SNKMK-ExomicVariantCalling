@@ -14,7 +14,7 @@ touch workflow/scripts/.gitkeep
 touch workflow/notebooks/.gitkeep 
 rouch workflow/report/.gitkeep
 
-touch images/.gitkeep config/.gitkeep results/.gitkeep resources/.gitkeep workflow/{rules,envs,scripts,notebooks,report}/.gitkeep
+touch images/.gitkeep config/.gitkeep results/.gitkeep resources/.gitkeep workflow/{rules,envs,scripts,notebooks,report}/.gitkeep .tests/.gitkeep
 
 
 # These commands create the files in main directory
