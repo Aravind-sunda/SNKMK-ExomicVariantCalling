@@ -43,4 +43,4 @@ rule cram_to_bam:
         samtools fixmate -m -O BAM - - | \
         samtools sort -@ {params.threads} -m {params.memory} -O BAM -o {output.bam_processed} -
         samtools index {output.bam_processed}
-        """"
+        """
