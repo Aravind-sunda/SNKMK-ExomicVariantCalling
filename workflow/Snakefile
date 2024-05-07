@@ -8,7 +8,7 @@ names = ["BOSTON_CJD29_CJD29", "BOSTON_CJD40_CJD40"]  # Add your sample names he
 rule all:
     input:
         bam_processed = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bai", sample = names),
-        bam_index = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam", sample = names)
+        bam_index = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam", sample = names),
         dir = directory(expand("results/{sample}",sample = names))
 
 rule getreference:
