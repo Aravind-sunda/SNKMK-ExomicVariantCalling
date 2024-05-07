@@ -9,6 +9,7 @@ rule all:
     input:
         bam_processed = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bai", sample = names),
         bam_index = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam", sample = names)
+        dir = directory(expand("results/{sample}",sample = names))
 
 rule getreference:
     output:
@@ -22,9 +23,9 @@ rule getreference:
 
 rule create_directories:
     output:
-        directory(expand("results/{sample}",sample = names))
+        dir = directory(expand("results/{sample}",sample = names))
     shell:
-        "mkdir -p {output}"
+        "mkdir -p {output.dir}"
 
 rule cram_to_bam:
     input:
@@ -42,4 +43,4 @@ rule cram_to_bam:
         samtools fixmate -m -O BAM - - | \
         samtools sort -@ {params.threads} -m {params.memory} -O BAM -o {output.bam_processed} -
         samtools index {output.bam_processed}
-        """
+        """"
