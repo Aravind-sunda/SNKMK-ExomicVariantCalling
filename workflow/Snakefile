@@ -9,7 +9,7 @@ rule all:
     input:
         bam_processed = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bai", sample = names),
         bam_index = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam", sample = names),
-        dir = expand("results/{sample}",sample = names)
+        # dir = expand("results/{sample}",sample = names)
         # cannot use directory() in inputs
 
 rule getreference:
@@ -22,11 +22,11 @@ rule getreference:
         tar -xvzf reference/h38flat.fasta-index.tar.gz
         """
 
-rule create_directories:
-    output:
-        dir = directory(expand("results/{sample}",sample = names))
-    shell:
-        "mkdir -p {output.dir}"
+# rule create_directories:
+#     output:
+#         dir = directory(expand("results/{sample}",sample = names))
+#     shell:
+#         "mkdir -p {output.dir}"
 
 rule cram_to_bam:
     input:
