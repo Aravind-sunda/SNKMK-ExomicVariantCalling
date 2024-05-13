@@ -28,16 +28,18 @@ rule cram_to_bam:
         bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam",
         bam_index="results/{sample}/{sample}.aligned_fixmates_sorted.bai"
         # Technically not used in the next rule. The tool however used this. Define in rule all?
+    threads:8
     params:
-        memory="8G",
-        threads=8
+        memory="8G"
     conda:
         "envs/samtools.yaml"
+    envmodules:
+        "samtools/1.10"
     shell:
         """
-        samtools sort -n -@ {params.threads} -m {params.memory} -O BAM {input.cram} | \
+        samtools sort -n -@ threads -m {params.memory} -O BAM {input.cram} | \
         samtools fixmate -m -O BAM - - | \
-        samtools sort -@ {params.threads} -m {params.memory} -O BAM -o {output.bam_processed} -
+        samtools sort -@ threads -m {params.memory} -O BAM -o {output.bam_processed} -
         samtools index {output.bam_processed}
         """
 
