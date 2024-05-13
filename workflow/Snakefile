@@ -19,7 +19,7 @@ rule getreference:
         wget -P reference/ https://dl.dnanex.us/F/D/734xvkZG02bbF5vF1bZ93G03ZK1g6x64ffVYkyBk/h38flat.fasta-index.tar.gz 
         tar -xvzf reference/h38flat.fasta-index.tar.gz
         """
-        
+
 rule cram_to_bam:
     input:
         cram="data/{sample}.aligned.cram",
@@ -31,8 +31,8 @@ rule cram_to_bam:
     params:
         memory="8G",
         threads=8
-    envmodules:
-        ""
+    conda:
+        "envs/samtools.yaml"
     shell:
         """
         samtools sort -n -@ {params.threads} -m {params.memory} -O BAM {input.cram} | \
@@ -71,7 +71,6 @@ rule cram_to_bam:
 #         --interval-padding 50 \
 #         --output {output.recal_table} --QUIET \
 #         """
-
 
 # rule call_variants:
 #     input:
