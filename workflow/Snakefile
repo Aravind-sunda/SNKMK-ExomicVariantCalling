@@ -34,7 +34,7 @@ rule cram_to_bam:
     conda:
         "envs/samtools.yaml"
     envmodules:
-        "samtools/1.10"
+        "samtools/1.19.2"
     shell:
         """
         samtools sort -n -@ threads -m {params.memory} -O BAM {input.cram} | \
