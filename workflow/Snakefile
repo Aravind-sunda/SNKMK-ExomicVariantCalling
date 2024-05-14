@@ -33,8 +33,8 @@ rule cram_to_bam:
         memory="8G"
     conda:
         "envs/samtools.yaml"
-    envmodules:
-        "samtools/1.19.2"
+    # envmodules:
+    #     "samtools/1.19.2"
     shell:
         """
         samtools sort -n -@ threads -m {params.memory} -O BAM {input.cram} | \
