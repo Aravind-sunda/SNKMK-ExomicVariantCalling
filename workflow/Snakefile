@@ -48,7 +48,7 @@ rule bam_index:
         # Technically not used in the next rule. The tool however used this. Define in rule all?
     shell:
         """
-        samtools index {input.bam_processed} > {output.bam_index}
+        samtools index -o {output.bam_index} {input.bam_processed} 
         """
 # rule mark_duplicates:
 #     input:
