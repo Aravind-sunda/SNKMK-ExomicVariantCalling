@@ -1,4 +1,5 @@
 name: samtools_env
+# Since channel priority is not supported in conda, we need to specify the order of channels. If it is strictly required to install a package from a specific channel, you can specify the channel name in the package name. We have to specify the channels in the order that they should be searched.
 channels:
     - conda-forge
     - bioconda
