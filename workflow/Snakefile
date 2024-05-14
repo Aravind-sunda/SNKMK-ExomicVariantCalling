@@ -45,6 +45,7 @@ rule bam_index:
         bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam"
     output:
         bam_index="results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai"
+        # Important that it has to mention bam.bai. Otherwise, it will not be recognized as an index file.
         # Technically not used in the next rule. The tool however used this. Define in rule all?
     conda:
         "envs/samtools.yaml"    
