@@ -7,13 +7,13 @@ names = ["BOSTON_CJD29_CJD29", "BOSTON_CJD40_CJD40"]  # Add your sample names he
 # --- Pipeline Rules --- #
 rule all:
     input:
-        bam_processed = expand("/results/{sample}/{sample}.aligned_fixmates_sorted.bai", sample = names),
-        bam_index = expand("/results/{sample}/{sample}.aligned_fixmates_sorted.bam", sample = names)
+        bam_processed = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bai", sample = names),
+        bam_index = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam", sample = names)
 
 rule getreference:
     output:
-        reference="/reference/genome.fa",
-        reference_idx="/reference/genome.fa.fai"
+        reference="reference/genome.fa",
+        reference_idx="reference/genome.fa.fai"
     shell:
         """
         wget -P reference/ https://dl.dnanex.us/F/D/734xvkZG02bbF5vF1bZ93G03ZK1g6x64ffVYkyBk/h38flat.fasta-index.tar.gz 
@@ -22,11 +22,11 @@ rule getreference:
 
 rule cram_to_bam:
     input:
-        cram="/data/{sample}.aligned.cram",
-        reference="/reference/genome.fa"
+        cram="data/{sample}.aligned.cram",
+        reference="reference/genome.fa"
     output:
-        bam_processed="/results/{sample}/{sample}.aligned_fixmates_sorted.bam",
-        bam_index="/results/{sample}/{sample}.aligned_fixmates_sorted.bai"
+        bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam",
+        bam_index="results/{sample}/{sample}.aligned_fixmates_sorted.bai"
         # Technically not used in the next rule. The tool however used this. Define in rule all?
     threads:8
     params:
