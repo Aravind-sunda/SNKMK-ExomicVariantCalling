@@ -9,7 +9,7 @@ localrules: all,getreference,bam_index
 rule all:
     input:
         bam_processed = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam", sample = names),
-        bam_index = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bai", sample = names)
+        bam_index = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai", sample = names)
 
 rule getreference:
     output:
@@ -44,7 +44,7 @@ rule bam_index:
     input:
         bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam"
     output:
-        bam_index="results/{sample}/{sample}.aligned_fixmates_sorted.bai"
+        bam_index="results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai"
         # Technically not used in the next rule. The tool however used this. Define in rule all?
     shell:
         """
