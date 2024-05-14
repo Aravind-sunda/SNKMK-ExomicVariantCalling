@@ -46,9 +46,11 @@ rule bam_index:
     output:
         bam_index="results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai"
         # Technically not used in the next rule. The tool however used this. Define in rule all?
+    conda:
+        "envs/samtools.yaml"    
     shell:
         """
-        samtools index -o {output.bam_index} {input.bam_processed} 
+        samtools index {input.bam_processed} 
         """
 # rule mark_duplicates:
 #     input:
