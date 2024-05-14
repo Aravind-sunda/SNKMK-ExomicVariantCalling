@@ -1,7 +1,7 @@
 # Snakefile
 
 # --- Variables --- #
-workdir: "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
+# workdir: "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
 names = ["BOSTON_CJD29_CJD29", "BOSTON_CJD40_CJD40"]  # Add your sample names here
 
 # --- Pipeline Rules --- #
