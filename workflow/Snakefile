@@ -5,6 +5,7 @@
 names = ["BOSTON_CJD29_CJD29", "BOSTON_CJD40_CJD40"]  # Add your sample names here
 
 # --- Pipeline Rules --- #
+localrules: all,getreference,bam_index
 rule all:
     input:
         bam_processed = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam", sample = names),
@@ -47,7 +48,7 @@ rule bam_index:
         # Technically not used in the next rule. The tool however used this. Define in rule all?
     shell:
         """
-        samtools index {input.bam_processed}
+        samtools index {input.bam_processed} > {output.bam_index}
         """
 # rule mark_duplicates:
 #     input:
