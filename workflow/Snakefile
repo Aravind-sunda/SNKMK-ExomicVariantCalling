@@ -11,9 +11,10 @@ rule all:
     input:
         # bam_processed = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam", sample = names),
         bam_index = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai", sample = names),
-        stats=expand("results/{sample}/{sample}.stats", sample = names),
+        vcf_stats=expand("results/{sample}/{sample}.stats", sample = names),
         # genotyped_vcf="results/all_samples_genotyped.vcf.gz",
         annotated_vcf="results/all_samples_genotyped_annotated.vcf.gz"
+        annotated_stats="results/all_samples_genotyped_annotated.vcf.gz.html"
 
 
 rule getreference:
@@ -128,12 +129,12 @@ rule variant_stats:
     input: 
         vcf="results/{sample}/{sample}.vcf"
     output:
-        stats="results/{sample}/{sample}.stats" 
+        vcf_stats="results/{sample}/{sample}.stats" 
     conda:
         "envs/bcftools.yaml" 
     shell: 
         """
-        bcftools stats {input.vcf} > {output.stats}
+        bcftools stats {input.vcf} > {output.vcf_stats}
         """
 
 rule genomic_db_import:
@@ -172,11 +173,12 @@ rule genotype_gvcfs:
         "envs/gatk.yaml"
     shell:
     #remember to check the input db path and make sure that it works
-    # gendb:// is a prefix that is used to indicate that the input is a GenomicsDB workspace. It has to have 3 (///) slashes if you are not doing a variable. 
+    # gendb:// is a prefix that is used to indicate that the input is a GenomicsDB workspace. It has to have 3 (///) slashes if you are not doing a variable.
+    # Snakemake by default uses 2 slashes. So, if you are using a variable, you have to add an extra slash. 
         """
         gatk GenotypeGVCFs \
         -R {input.reference} \
-        -V gendb://{input.db} \
+        -V gendb:///{input.db} \ 
         -O {output.genotyped_vcf}
         """
 
@@ -185,12 +187,13 @@ rule snpeff_annotate:
         vcf="results/all_samples_genotyped.vcf.gz",
         reference="reference/genome.fa"
     output:
-        annotated_vcf="results/all_samples_genotyped_annotated.vcf.gz"
+        annotated_vcf="results/all_samples_genotyped_annotated.vcf.gz",
+        annotated_stats="results/all_samples_genotyped_annotated.vcf.gz.html"
     conda:
         "envs/snpeff.yaml"
     shell:
         """
-        java -Xmx8g -jar snpEff.jar ann -download -v -stats {output.annotated_vcf}.html GRCh38.86 {input.vcf} > {output.annotated_vcf}
+        snpEff -Xmx8g -download -v -stats {output.annotated_vcf}.html GRCh38.86 {input.vcf} > {output.annotated_vcf}
         """   
 
 
