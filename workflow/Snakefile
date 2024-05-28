@@ -11,7 +11,9 @@ rule all:
     input:
         # bam_processed = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam", sample = names),
         bam_index = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai", sample = names),
-        stats=expand("results/{sample}/{sample}.stats", sample = names)
+        stats=expand("results/{sample}/{sample}.stats", sample = names),
+        # genotyped_vcf="results/all_samples_genotyped.vcf.gz",
+        annotated_vcf="results/all_samples_genotyped_annotated.vcf.gz"
 
 
 rule getreference:
@@ -162,7 +164,7 @@ rule genomic_db_import:
 rule genotype_gvcfs:
     input:
         reference="reference/genome.fa",
-        db=directory("VCF_DB")
+        db="VCF_DB"
     output:
         genotyped_vcf="results/all_samples_genotyped.vcf.gz"
     # params:
