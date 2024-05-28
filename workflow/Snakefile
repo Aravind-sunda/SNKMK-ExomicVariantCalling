@@ -140,7 +140,7 @@ rule genomic_db_import:
     input:
         vcf=expand("results/{sample}/{sample}.vcf", sample=names),
         reference="reference/genome.fa",
-        sample_map="reference/cohort.sample_map",
+        sample_map="reference/cohort.sample_map",       ## REMEMBER TO CREATE THIS FILE
         intervals="reference/xgen_plus_spikein.b38.bed"
     output:
         db=directory("VCF_DB")           
