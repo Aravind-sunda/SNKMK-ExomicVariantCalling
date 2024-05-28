@@ -70,7 +70,7 @@ rule mark_duplicates:
         "envs/gatk.yaml"
     shell:
         """
-        gatk MarkDuplicatesSpark -I {input.bam_processed} -O {output.bam_dedup} --metrics-file {output.dedup_metrics} --QUIET
+        gatk MarkDuplicatesSpark --java-options "-Xmx60g -Xms60g" -I {input.bam_processed} -O {output.bam_dedup} --metrics-file {output.dedup_metrics} --QUIET
         """
 
 rule base_recalibration:
