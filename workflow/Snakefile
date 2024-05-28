@@ -11,7 +11,7 @@ rule all:
     input:
         # bam_processed = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam", sample = names),
         bam_index = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai", sample = names),
-        stats=expand("results/{sample}/{sample}.stats", sample = names),
+        stats=expand("results/{sample}/{sample}.stats", sample = names)
 
 
 rule getreference:
@@ -40,7 +40,7 @@ rule cram_to_bam:
     #     "samtools/1.19.2"
     shell:
         """
-        samtools sort -n -@ threads -m {params.memory} -O BAM {input.cram} | \
+        samtools sort -n -@ {threads} -m {params.memory} -O BAM {input.cram} | \
         samtools fixmate -m -O BAM - - | \
         samtools sort -@ threads -m {params.memory} -O BAM -o {output.bam_processed} -
         """
@@ -74,10 +74,10 @@ rule mark_duplicates:
 
 rule base_recalibration:
     input:
-        bam_dedup="results/{sample}/{sample}.aligned_dedup.bam"
-        reference="reference/genome.fa"
-        intervals="reference/xgen_plus_spikein.b38.bed"
-        known_sites="reference/dbsnp144.b38.vcf"
+        bam_dedup="results/{sample}/{sample}.aligned_dedup.bam",
+        reference="reference/genome.fa",
+        intervals="reference/xgen_plus_spikein.b38.bed",
+        known_sites="reference/dbsnp144.b38.vcf",
     output:
         recal_table="results/{sample}/{sample}.recal.table"
         bam_bqsr="results/{sample}/{sample}_aligned_dedupreads_bqsr.bam"
@@ -165,7 +165,7 @@ rule genotype_gvcfs:
         db=directory("VCF_DB")
     output:
         genotyped_vcf="results/all_samples_genotyped.vcf.gz"
-    params:
+    # params:
     conda:
         "envs/gatk.yaml"
     shell:
