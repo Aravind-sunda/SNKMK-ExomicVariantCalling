@@ -70,7 +70,7 @@ rule mark_duplicates:
         "envs/gatk.yaml"
     shell:
         """
-        gatk MarkDuplicatesSpark --java-options "-Xmx60g -Xms60g" -I {input.bam_processed} -O {output.bam_dedup} --metrics-file {output.dedup_metrics} --QUIET
+        gatk MarkDuplicatesSpark -I {input.bam_processed} -O {output.bam_dedup} --metrics-file {output.dedup_metrics} --QUIET --tmp-dir /restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP
         """
 
 rule base_recalibration:
