@@ -10,9 +10,12 @@ localrules: all,getreference,bam_index,variant_stats
 rule all:
     input:
         # bam_processed = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam", sample = names),
-        # bam_index = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai", sample = names)
+        bam_index = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai", sample = names),
+        stats=expand("results/{sample}/{sample}.stats", sample = names),
+
 
 rule getreference:
+# Remember to add the other references in this file as well. such as known sites
     output:
         reference="reference/genome.fa",
         reference_idx="reference/genome.fa.fai"
@@ -91,11 +94,11 @@ rule base_recalibration:
         --interval-padding {params.padding} \
         --output {output.recal_table} --QUIET 
 
-        # gatk ApplyBQSR -I {input.bam_dedup} \
-        # -R {input.reference} \
-        # --bqsr-recal-file {output.recal_table} \
-        # --output {output.bam_bqsr} \
-        # --QUIET
+        gatk ApplyBQSR -I {input.bam_dedup} \
+        -R {input.reference} \
+        --bqsr-recal-file {output.recal_table} \
+        --output {output.bam_bqsr} \
+        --QUIET
         """
 
 rule call_variants:
@@ -168,12 +171,12 @@ rule genotype_gvcfs:
     shell:
     #remember to check the input db path and make sure that it works
     # gendb:// is a prefix that is used to indicate that the input is a GenomicsDB workspace. It has to have 3 (///) slashes if you are not doing a variable. 
-    """
-    gatk GenotypeGVCFs \
-   -R {input.reference} \
-   -V gendb://{input.db} \
-   -O {output.genotyped_vcf}
-   """
+        """
+        gatk GenotypeGVCFs \
+        -R {input.reference} \
+        -V gendb://{input.db} \
+        -O {output.genotyped_vcf}
+        """
 
 rule snpeff_annotate:
     input:
