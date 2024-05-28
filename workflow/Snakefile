@@ -179,7 +179,7 @@ rule genotype_gvcfs:
         """
         gatk GenotypeGVCFs \
         -R {input.reference} \
-        -V gendb:///{input.db} \ 
+        -V gendb:///{input.db} \
         -O {output.genotyped_vcf}
         """
 
