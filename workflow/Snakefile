@@ -1,15 +1,16 @@
 # Snakefile
-
+# Notes:
+# Remove the config file directory. it is not necessary.Also remove the profile file
 # --- Variables --- #
 # workdir: "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
 names = ["BOSTON_CJD29_CJD29", "BOSTON_CJD40_CJD40"]  # Add your sample names here
 
 # --- Pipeline Rules --- #
-localrules: all,getreference,bam_index
+localrules: all,getreference,bam_index,variant_stats
 rule all:
     input:
-        bam_processed = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam", sample = names),
-        bam_index = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai", sample = names)
+        # bam_processed = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam", sample = names),
+        # bam_index = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai", sample = names)
 
 rule getreference:
     output:
@@ -53,51 +54,139 @@ rule bam_index:
         """
         samtools index {input.bam_processed} 
         """
-# rule mark_duplicates:
-#     input:
-#         bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam"
-#     output:
-#         bam_dedup="results/{sample}/{sample}.aligned_dedup.bam",
-#         dedup_metrics="results/{sample}/{sample}.dedupmetrics.txt"
-#         # Not used in the next file. Define in rule all?
-#     params:
-#     shell:
-#         """
-#         gatk MarkDuplicatesSpark -I {input.bam_processed} -O {output.bam_dedup} --metrics-file {output.dedup_metrics} --QUIET
-#         """
 
-# rule base_recalibration:
-#     input:
-#         bam_dedup="results/{sample}/{sample}.aligned_dedup.bam"
-#         reference="reference/genome.fa"
-#     output:
-#         recal_table="results/{sample}/{sample}.recal.table"
-#         bam_bqsr=""
-#     params:
-#     shell:
-#         """
-#         gatk BaseRecalibrator --input {input.bam_dedup} \
-#         --reference {input.reference} \
-#         --known-sites ${reference}/dbsnp144.b38.vcf \
-#         --intervals ${reference}/xgen_plus_spikein.b38.bed \
-#         --interval-padding 50 \
-#         --output {output.recal_table} --QUIET \
-#         """
+rule mark_duplicates:
+    input:
+        bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam"
+    output:
+        bam_dedup="results/{sample}/{sample}.aligned_dedup.bam",
+        dedup_metrics="results/{sample}/{sample}.dedupmetrics.txt"
+        # Not used in the next file. Define in rule all?
+    conda:
+        "envs/gatk.yaml"
+    shell:
+        """
+        gatk MarkDuplicatesSpark -I {input.bam_processed} -O {output.bam_dedup} --metrics-file {output.dedup_metrics} --QUIET
+        """
 
-# rule call_variants:
-#     input:
-#     output:
-#     params:
-#     shell:
+rule base_recalibration:
+    input:
+        bam_dedup="results/{sample}/{sample}.aligned_dedup.bam"
+        reference="reference/genome.fa"
+        intervals="reference/xgen_plus_spikein.b38.bed"
+        known_sites="reference/dbsnp144.b38.vcf"
+    output:
+        recal_table="results/{sample}/{sample}.recal.table"
+        bam_bqsr="results/{sample}/{sample}_aligned_dedupreads_bqsr.bam"
+    params:
+        padding=50
+    conda:
+        "envs/gatk.yaml"   
+    shell:
+        """
+        gatk BaseRecalibrator --input {input.bam_dedup} \
+        --reference {input.reference} \
+        --known-sites {input.known_sites} \
+        --intervals {input.intervals} \
+        --interval-padding {params.padding} \
+        --output {output.recal_table} --QUIET 
 
-# rule genotyping:
-#     input:
-#     output:
-#     params:
-#     shell:
+        # gatk ApplyBQSR -I {input.bam_dedup} \
+        # -R {input.reference} \
+        # --bqsr-recal-file {output.recal_table} \
+        # --output {output.bam_bqsr} \
+        # --QUIET
+        """
 
-# rule annotation:
-#     input:
-#     output:
-#     params:
-#     shell:
+rule call_variants:
+    input:
+        bam_bqsr="results/{sample}/{sample}_aligned_dedupreads_bqsr.bam"
+        reference="reference/genome.fa"
+        intervals="reference/xgen_plus_spikein.b38.bed"
+    output:
+        vcf="results/{sample}/{sample}.vcf"
+    params:
+        padding=50
+    conda:
+        "envs/gatk.yaml" 
+    shell:
+        """
+        gatk HaplotypeCaller -I {input.bam_bqsr} \
+        -R {input.reference} \
+        --intervals {input.intervals} \
+        --interval-padding {params.padding} \
+        -O {output.vcf} \
+        --QUIET
+        """
+
+rule variant_stats:
+    input: 
+        vcf="results/{sample}/{sample}.vcf"
+    output:
+        stats="results/{sample}/{sample}.stats" 
+    conda:
+        "envs/bcftools.yaml" 
+    shell: 
+        """
+        bcftools stats {input.vcf} > {output.stats}
+        """
+
+rule genomic_db_import:
+    input:
+        vcf=expand("results/{sample}/{sample}.vcf", sample=names),
+        reference="reference/genome.fa",
+        sample_map="reference/cohort.sample_map",
+        intervals="reference/xgen_plus_spikein.b38.bed"
+    output:
+        db=directory("VCF_DB")           
+    params:
+        padding=50
+    conda:
+        "envs/gatk.yaml"        
+    shell:
+    # Note: have to create a sample map file before hand. It is one of the necessary inputs.
+        """
+        gatk --java-options "-Xmx60g -Xms60g" GenomicsDBImport \
+        --genomicsdb-workspace-path {output.db} \
+        --sample-name-map {input.sample_map} \
+        --intervals {input.intervals} \
+        --reference {input.reference} \
+        --validate-sample-name-map true \
+        --interval-padding {params.padding} \
+        --merge-input-intervals true
+        """
+
+rule genotype_gvcfs:
+    input:
+        reference="reference/genome.fa",
+        db=directory("VCF_DB")
+    output:
+        genotyped_vcf="results/all_samples_genotyped.vcf.gz"
+    params:
+    conda:
+        "envs/gatk.yaml"
+    shell:
+    #remember to check the input db path and make sure that it works
+    # gendb:// is a prefix that is used to indicate that the input is a GenomicsDB workspace. It has to have 3 (///) slashes if you are not doing a variable. 
+    """
+    gatk GenotypeGVCFs \
+   -R {input.reference} \
+   -V gendb://{input.db} \
+   -O {output.genotyped_vcf}
+   """
+
+rule snpeff_annotate:
+    input:
+        vcf="results/all_samples_genotyped.vcf.gz",
+        reference="reference/genome.fa"
+    output:
+        annotated_vcf="results/all_samples_genotyped_annotated.vcf.gz"
+    conda:
+        "envs/snpeff.yaml"
+    shell:
+        """
+        java -Xmx8g -jar snpEff.jar ann -download -v -stats {output.annotated_vcf}.html GRCh38.86 {input.vcf} > {output.annotated_vcf}
+        """   
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
