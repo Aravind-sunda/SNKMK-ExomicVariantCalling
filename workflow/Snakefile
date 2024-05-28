@@ -9,13 +9,10 @@ names = ["BOSTON_CJD29_CJD29", "BOSTON_CJD40_CJD40"]  # Add your sample names he
 localrules: all,getreference,bam_index,variant_stats
 rule all:
     input:
-        # bam_processed = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam", sample = names),
         bam_index = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai", sample = names),
         vcf_stats=expand("results/{sample}/{sample}.stats", sample = names),
-        # genotyped_vcf="results/all_samples_genotyped.vcf.gz",
-        annotated_vcf="results/all_samples_genotyped_annotated.vcf.gz"
+        annotated_vcf="results/all_samples_genotyped_annotated.vcf.gz",
         annotated_stats="results/all_samples_genotyped_annotated.vcf.gz.html"
-
 
 rule getreference:
 # Remember to add the other references in this file as well. such as known sites
@@ -47,6 +44,7 @@ rule cram_to_bam:
         samtools fixmate -m -O BAM - - | \
         samtools sort -@ threads -m {params.memory} -O BAM -o {output.bam_processed} -
         """
+
 rule bam_index:
     input:
         bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam"
@@ -151,7 +149,10 @@ rule genomic_db_import:
         "envs/gatk.yaml"        
     shell:
     # Note: have to create a sample map file before hand. It is one of the necessary inputs.
+    # Have to remove the vcfdb directory before running the command.
         """
+        rm -rf {output.db}
+
         gatk --java-options "-Xmx60g -Xms60g" GenomicsDBImport \
         --genomicsdb-workspace-path {output.db} \
         --sample-name-map {input.sample_map} \
@@ -172,7 +173,7 @@ rule genotype_gvcfs:
     conda:
         "envs/gatk.yaml"
     shell:
-    #remember to check the input db path and make sure that it works
+    # remember to check the input db path and make sure that it works
     # gendb:// is a prefix that is used to indicate that the input is a GenomicsDB workspace. It has to have 3 (///) slashes if you are not doing a variable.
     # Snakemake by default uses 2 slashes. So, if you are using a variable, you have to add an extra slash. 
         """
@@ -192,9 +193,9 @@ rule snpeff_annotate:
     conda:
         "envs/snpeff.yaml"
     shell:
+    #-download flag need not be added to snpeff
         """
-        snpEff -Xmx8g -download -v -stats {output.annotated_vcf}.html GRCh38.86 {input.vcf} > {output.annotated_vcf}
+        snpEff -Xmx8g -v -stats {output.annotated_stats} GRCh38.86 {input.vcf} > {output.annotated_vcf}
         """   
-
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
