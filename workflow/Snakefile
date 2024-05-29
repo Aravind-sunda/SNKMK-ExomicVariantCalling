@@ -110,7 +110,7 @@ rule call_variants:
         reference="reference/genome.fa",
         intervals="reference/xgen_plus_spikein.b38.bed"
     output:
-        vcf="results/{sample}/{sample}.vcf"
+        vcf="results/vcf/{sample}.vcf"
     params:
         padding=50
     conda:
@@ -127,7 +127,7 @@ rule call_variants:
 
 rule variant_stats:
     input: 
-        vcf="results/{sample}/{sample}.vcf"
+        vcf="results/vcf/{sample}.vcf"
     output:
         vcf_stats="results/{sample}/{sample}.stats" 
     conda:
@@ -139,7 +139,7 @@ rule variant_stats:
 
 rule genomic_db_import:
     input:
-        vcf=expand("results/{sample}/{sample}.vcf", sample=names),
+        vcf=expand("results/vcf/{sample}.vcf", sample=names),
         reference="reference/genome.fa",
         sample_map="reference/cohort.sample_map",       ## REMEMBER TO CREATE THIS FILE
         intervals="reference/xgen_plus_spikein.b38.bed"
