@@ -124,7 +124,7 @@ rule call_variants:
         --intervals {input.intervals} \
         --interval-padding {params.padding} \
         -O {output.vcf} \
-        -ERC GVCF
+        -ERC GVCF \
         --QUIET
         """
 
