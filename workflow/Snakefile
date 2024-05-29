@@ -36,9 +36,11 @@ rule cram_to_bam:
         memory="8G"
     conda:
         "envs/samtools.yaml"
-    # envmodules:
-    #     "samtools/1.19.2"
     shell:
+    # Explanation: 
+    #1. Sort the cram file by name
+    #2. Fixmate the sorted cram file
+    #3. Sort the fixmated bam file by chromosome
         """
         samtools sort -n -@ {threads} -m {params.memory} -O BAM {input.cram} | \
         samtools fixmate -m -O BAM - - | \
@@ -181,7 +183,7 @@ rule genotype_gvcfs:
         """
         gatk GenotypeGVCFs \
         -R {input.reference} \
-        -V gendb:///{input.db} \
+        -V gendb://{input.db} \
         -O {output.genotyped_vcf}
         """
 
