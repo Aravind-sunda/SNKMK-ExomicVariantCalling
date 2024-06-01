@@ -187,39 +187,39 @@ rule genomic_db_import:
         --merge-input-intervals true
         """
 
-# rule genotype_gvcfs:
-#     input:
-#         reference="reference/genome.fa",
-#         db="VCF_DB"
-#     output:
-#         genotyped_vcf="results/all_samples_genotyped.vcf.gz"
-#     # params:
-#     conda:
-#         "envs/gatk.yaml"
-#     shell:
-#     # remember to check the input db path and make sure that it works
-#     # gendb:// is a prefix that is used to indicate that the input is a GenomicsDB workspace. It has to have 3 (///) slashes if you are not doing a variable.
-#     # Snakemake by default uses 2 slashes. So, if you are using a variable, you have to add an extra slash. 
-#         """
-#         gatk GenotypeGVCFs \
-#         -R {input.reference} \
-#         -V gendb://{input.db} \
-#         -O {output.genotyped_vcf}
-#         """
+rule genotype_gvcfs:
+    input:
+        reference="reference/genome.fa",
+        db="VCF_DB"
+    output:
+        genotyped_vcf="results/all_samples_genotyped.vcf.gz"
+    # params:
+    conda:
+        "envs/gatk.yaml"
+    shell:
+    # remember to check the input db path and make sure that it works
+    # gendb:// is a prefix that is used to indicate that the input is a GenomicsDB workspace. It has to have 3 (///) slashes if you are not doing a variable.
+    # Snakemake by default uses 2 slashes. So, if you are using a variable, you have to add an extra slash. 
+        """
+        gatk GenotypeGVCFs \
+        -R {input.reference} \
+        -V gendb://{input.db} \
+        -O {output.genotyped_vcf}
+        """
 
-# rule snpeff_annotate:
-#     input:
-#         vcf="results/all_samples_genotyped.vcf.gz",
-#         reference="reference/genome.fa"
-#     output:
-#         annotated_vcf="results/all_samples_genotyped_annotated.vcf.gz",
-#         annotated_stats="results/all_samples_genotyped_annotated.vcf.gz.html"
-#     conda:
-#         "envs/snpeff.yaml"
-#     shell:
-#     #-download flag need not be added to snpeff
-#         """
-#         snpEff -Xmx8g -v -stats {output.annotated_stats} GRCh38.86 {input.vcf} > {output.annotated_vcf}
-#         """   
+rule snpeff_annotate:
+    input:
+        vcf="results/all_samples_genotyped.vcf.gz",
+        reference="reference/genome.fa"
+    output:
+        annotated_vcf="results/all_samples_genotyped_annotated.vcf.gz",
+        annotated_stats="results/all_samples_genotyped_annotated.vcf.gz.html"
+    conda:
+        "envs/snpeff.yaml"
+    shell:
+    #-download flag need not be added to snpeff
+        """
+        snpEff -Xmx8g -v -stats {output.annotated_stats} GRCh38.86 {input.vcf} > {output.annotated_vcf}
+        """   
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
