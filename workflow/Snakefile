@@ -219,7 +219,7 @@ rule snpeff_annotate:
     shell:
     #-download flag need not be added to snpeff
         """
-        snpEff -Xmx8g -v -stats {output.annotated_stats} GRCh38.86 {input.vcf} > {output.annotated_vcf}
+        snpEff -Xmx8g -v -stats {output.annotated_stats} GRCh38.86 {input.genotyped_vcf} > {output.annotated_vcf}
         """   
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
