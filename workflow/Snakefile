@@ -152,7 +152,7 @@ rule cohort_sample_map:
         sample_map="reference/cohort.sample_map"
     run:
         with open("reference/cohort.sample_map", "w") as f:
-            for vcf in snakemake.input.vcf:
+            for vcf in input.vcf:
                 sample = vcf.split("/")[-1].split(".")[0]
                 f.write(f"{sample}\t{vcf}\n")
 
