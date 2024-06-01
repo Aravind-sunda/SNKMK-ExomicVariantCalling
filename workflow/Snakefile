@@ -155,6 +155,8 @@ rule cohort_sample_map:
             for vcf in input.vcf:
                 sample = vcf.split("/")[-1].split(".")[0]
                 f.write(f"{sample}\t{vcf}\n")
+                if i < len(input.vcf) - 1:
+                    f.write("\n")
 
 # rule genomic_db_import:
 #     input:
