@@ -209,7 +209,7 @@ rule genotype_gvcfs:
 
 rule snpeff_annotate:
     input:
-        vcf="results/all_samples_genotyped.vcf.gz",
+        genotyped_vcf="results/all_samples_genotyped.vcf.gz",
         reference="reference/genome.fa"
     output:
         annotated_vcf="results/all_samples_genotyped_annotated.vcf.gz",
