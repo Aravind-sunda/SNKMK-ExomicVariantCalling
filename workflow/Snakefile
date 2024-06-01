@@ -156,67 +156,67 @@ rule cohort_sample_map:
                 sample = vcf.split("/")[-1].split(".")[0]
                 f.write(f"{sample}\t{vcf}\n")
 
-rule genomic_db_import:
-    input:
-        vcf=expand("results/vcf/{sample}.g.vcf", sample=names),
-        reference="reference/genome.fa",
-        sample_map="reference/cohort.sample_map",       ## REMEMBER TO CREATE THIS FILE
-        intervals="reference/xgen_plus_spikein.b38.bed"
-    output:
-        db=directory("VCF_DB")           
-    params:
-        padding=50
-    conda:
-        "envs/gatk.yaml"        
-    shell:
-    # Note: have to create a sample map file before hand. It is one of the necessary inputs.
-    # Have to remove the vcfdb directory before running the command.
-        """
-        rm -rf {output.db}
+# rule genomic_db_import:
+#     input:
+#         vcf=expand("results/vcf/{sample}.g.vcf", sample=names),
+#         reference="reference/genome.fa",
+#         sample_map="reference/cohort.sample_map",       ## REMEMBER TO CREATE THIS FILE
+#         intervals="reference/xgen_plus_spikein.b38.bed"
+#     output:
+#         db=directory("VCF_DB")           
+#     params:
+#         padding=50
+#     conda:
+#         "envs/gatk.yaml"        
+#     shell:
+#     # Note: have to create a sample map file before hand. It is one of the necessary inputs.
+#     # Have to remove the vcfdb directory before running the command.
+#         """
+#         rm -rf {output.db}
 
-        gatk --java-options "-Xmx60g -Xms60g" GenomicsDBImport \
-        --genomicsdb-workspace-path {output.db} \
-        --sample-name-map {input.sample_map} \
-        --intervals {input.intervals} \
-        --reference {input.reference} \
-        --validate-sample-name-map true \
-        --interval-padding {params.padding} \
-        --merge-input-intervals true
-        """
+#         gatk --java-options "-Xmx60g -Xms60g" GenomicsDBImport \
+#         --genomicsdb-workspace-path {output.db} \
+#         --sample-name-map {input.sample_map} \
+#         --intervals {input.intervals} \
+#         --reference {input.reference} \
+#         --validate-sample-name-map true \
+#         --interval-padding {params.padding} \
+#         --merge-input-intervals true
+#         """
 
-rule genotype_gvcfs:
-    input:
-        reference="reference/genome.fa",
-        db="VCF_DB"
-    output:
-        genotyped_vcf="results/all_samples_genotyped.vcf.gz"
-    # params:
-    conda:
-        "envs/gatk.yaml"
-    shell:
-    # remember to check the input db path and make sure that it works
-    # gendb:// is a prefix that is used to indicate that the input is a GenomicsDB workspace. It has to have 3 (///) slashes if you are not doing a variable.
-    # Snakemake by default uses 2 slashes. So, if you are using a variable, you have to add an extra slash. 
-        """
-        gatk GenotypeGVCFs \
-        -R {input.reference} \
-        -V gendb://{input.db} \
-        -O {output.genotyped_vcf}
-        """
+# rule genotype_gvcfs:
+#     input:
+#         reference="reference/genome.fa",
+#         db="VCF_DB"
+#     output:
+#         genotyped_vcf="results/all_samples_genotyped.vcf.gz"
+#     # params:
+#     conda:
+#         "envs/gatk.yaml"
+#     shell:
+#     # remember to check the input db path and make sure that it works
+#     # gendb:// is a prefix that is used to indicate that the input is a GenomicsDB workspace. It has to have 3 (///) slashes if you are not doing a variable.
+#     # Snakemake by default uses 2 slashes. So, if you are using a variable, you have to add an extra slash. 
+#         """
+#         gatk GenotypeGVCFs \
+#         -R {input.reference} \
+#         -V gendb://{input.db} \
+#         -O {output.genotyped_vcf}
+#         """
 
-rule snpeff_annotate:
-    input:
-        vcf="results/all_samples_genotyped.vcf.gz",
-        reference="reference/genome.fa"
-    output:
-        annotated_vcf="results/all_samples_genotyped_annotated.vcf.gz",
-        annotated_stats="results/all_samples_genotyped_annotated.vcf.gz.html"
-    conda:
-        "envs/snpeff.yaml"
-    shell:
-    #-download flag need not be added to snpeff
-        """
-        snpEff -Xmx8g -v -stats {output.annotated_stats} GRCh38.86 {input.vcf} > {output.annotated_vcf}
-        """   
+# rule snpeff_annotate:
+#     input:
+#         vcf="results/all_samples_genotyped.vcf.gz",
+#         reference="reference/genome.fa"
+#     output:
+#         annotated_vcf="results/all_samples_genotyped_annotated.vcf.gz",
+#         annotated_stats="results/all_samples_genotyped_annotated.vcf.gz.html"
+#     conda:
+#         "envs/snpeff.yaml"
+#     shell:
+#     #-download flag need not be added to snpeff
+#         """
+#         snpEff -Xmx8g -v -stats {output.annotated_stats} GRCh38.86 {input.vcf} > {output.annotated_vcf}
+#         """   
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
