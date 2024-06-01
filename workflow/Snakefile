@@ -156,35 +156,36 @@ rule cohort_sample_map:
                 sample = vcf.split("/")[-1].split(".")[0]
                 f.write(f"{sample}\t{vcf}")
                 if i < len(input.vcf) - 1:
-                    f.write("\n")  # Add newline except for the last line
+                # Add newline except for the last line since we do not want an empty line at the end.
+                    f.write("\n")  
 
-# rule genomic_db_import:
-#     input:
-#         vcf=expand("results/vcf/{sample}.g.vcf", sample=names),
-#         reference="reference/genome.fa",
-#         sample_map="reference/cohort.sample_map",       ## REMEMBER TO CREATE THIS FILE
-#         intervals="reference/xgen_plus_spikein.b38.bed"
-#     output:
-#         db=directory("VCF_DB")           
-#     params:
-#         padding=50
-#     conda:
-#         "envs/gatk.yaml"        
-#     shell:
-#     # Note: have to create a sample map file before hand. It is one of the necessary inputs.
-#     # Have to remove the vcfdb directory before running the command.
-#         """
-#         rm -rf {output.db}
+rule genomic_db_import:
+    input:
+        vcf=expand("results/vcf/{sample}.g.vcf", sample=names),
+        reference="reference/genome.fa",
+        sample_map="reference/cohort.sample_map",       ## REMEMBER TO CREATE THIS FILE
+        intervals="reference/xgen_plus_spikein.b38.bed"
+    output:
+        db=directory("VCF_DB")           
+    params:
+        padding=50
+    conda:
+        "envs/gatk.yaml"        
+    shell:
+    # Note: have to create a sample map file before hand. It is one of the necessary inputs.
+    # Have to remove the vcfdb directory before running the command.
+        """
+        rm -rf {output.db}
 
-#         gatk --java-options "-Xmx60g -Xms60g" GenomicsDBImport \
-#         --genomicsdb-workspace-path {output.db} \
-#         --sample-name-map {input.sample_map} \
-#         --intervals {input.intervals} \
-#         --reference {input.reference} \
-#         --validate-sample-name-map true \
-#         --interval-padding {params.padding} \
-#         --merge-input-intervals true
-#         """
+        gatk --java-options "-Xmx60g -Xms60g" GenomicsDBImport \
+        --genomicsdb-workspace-path {output.db} \
+        --sample-name-map {input.sample_map} \
+        --intervals {input.intervals} \
+        --reference {input.reference} \
+        --validate-sample-name-map true \
+        --interval-padding {params.padding} \
+        --merge-input-intervals true
+        """
 
 # rule genotype_gvcfs:
 #     input:
