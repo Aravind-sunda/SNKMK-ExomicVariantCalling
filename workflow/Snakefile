@@ -18,16 +18,16 @@ rule all:
         annotated_vcf="results/all_samples_genotyped_annotated.vcf.gz",
         annotated_stats="results/all_samples_genotyped_annotated.vcf.gz.html"
 
-# rule getreference:
-# # Remember to add the other references in this file as well. such as known sites
-#     output:
-#         reference="reference/genome.fa",
-#         reference_idx="reference/genome.fa.fai"
-#     shell:
-#         """
-#         wget -P reference/ https://dl.dnanex.us/F/D/734xvkZG02bbF5vF1bZ93G03ZK1g6x64ffVYkyBk/h38flat.fasta-index.tar.gz 
-#         tar -xvzf reference/h38flat.fasta-index.tar.gz
-#         """
+rule getreference:
+# Remember to add the other references in this file as well. such as known sites
+    output:
+        reference="reference/genome.fa",
+        reference_idx="reference/genome.fa.fai"
+    shell:
+        """
+        wget -P reference/ https://dl.dnanex.us/F/D/734xvkZG02bbF5vF1bZ93G03ZK1g6x64ffVYkyBk/h38flat.fasta-index.tar.gz 
+        tar -xvzf reference/h38flat.fasta-index.tar.gz
+        """
 
 rule cram_to_bam:
     input:
