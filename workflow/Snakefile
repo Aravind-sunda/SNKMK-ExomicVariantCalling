@@ -86,7 +86,7 @@ rule base_recalibration:
         bam_dedup="results/{sample}/{sample}.aligned_dedup.bam",
         reference="reference/genome.fa",
         intervals="reference/xgen_plus_spikein.b38.bed",
-        known_sites="reference/dbsnp144.b38.vcf",
+        known_sites="reference/dbsnp144.b38.vcf"
     output:
         recal_table="results/{sample}/{sample}.recal.table",
         bam_bqsr="results/{sample}/{sample}_aligned_dedupreads_bqsr.bam"
@@ -116,7 +116,7 @@ rule call_variants:
         reference="reference/genome.fa",
         intervals="reference/xgen_plus_spikein.b38.bed"
     output:
-        vcf="results/vcf/{sample}.g.vcf"
+        vcf="results/vcf/{sample}.g.vcf",
         vcf_idx="results/vcf/{sample}.g.vcf.idx"
     params:
         padding=50
