@@ -3,10 +3,10 @@
 # Remove the config file directory. it is not necessary.Also remove the profile file
 # --- Variables --- #
 # workdir: "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
-with open("data/samples.txt") as f:
-    names = [line.strip() for line in f] # Remeber to create the samples.txt file in the data directory
-
 # names = ["BOSTON_CJD29_CJD29", "BOSTON_CJD40_CJD40"]  # Add your sample names here
+
+with open("data/samples.txt") as f:
+    names = [line.strip() for line in f] # Remember to create the samples.txt file in the data directory
 
 # --- Pipeline Rules --- #
 localrules: all,getreference,bam_index,variant_stats,cohort_sample_map
@@ -48,7 +48,7 @@ rule cram_to_bam:
         """
         samtools sort -n -@ {threads} -m {params.memory} -O BAM {input.cram} | \
         samtools fixmate -m -O BAM - - | \
-        samtools sort -@ threads -m {params.memory} -O BAM -o {output.bam_processed} -
+        samtools sort -@ {threads} -m {params.memory} -O BAM -o {output.bam_processed} -
         """
 
 rule bam_index:
@@ -72,6 +72,7 @@ rule mark_duplicates:
         bam_dedup="results/{sample}/{sample}.aligned_dedup.bam",
         dedup_metrics="results/{sample}/{sample}.dedupmetrics.txt"
         # Not used in the next file. Define in rule all?
+    threads:16
     conda:
         "envs/gatk.yaml"
     shell:
@@ -93,7 +94,8 @@ rule base_recalibration:
     params:
         padding=50
     conda:
-        "envs/gatk.yaml"   
+        "envs/gatk.yaml"
+    threads:8   
     shell:
         """
         gatk BaseRecalibrator --input {input.bam_dedup} \
@@ -121,7 +123,8 @@ rule call_variants:
     params:
         padding=50
     conda:
-        "envs/gatk.yaml" 
+        "envs/gatk.yaml"
+    threads:8 
     shell:
         """
         gatk HaplotypeCaller -I {input.bam_bqsr} \
@@ -170,7 +173,8 @@ rule genomic_db_import:
     params:
         padding=50
     conda:
-        "envs/gatk.yaml"        
+        "envs/gatk.yaml"
+    threads:8        
     shell:
     # Note: have to create a sample map file before hand. It is one of the necessary inputs.
     # Have to remove the vcfdb directory before running the command.
@@ -196,6 +200,7 @@ rule genotype_gvcfs:
     # params:
     conda:
         "envs/gatk.yaml"
+    threads:8
     shell:
     # remember to check the input db path and make sure that it works
     # gendb:// is a prefix that is used to indicate that the input is a GenomicsDB workspace. It has to have 3 (///) slashes if you are not doing a variable.
@@ -216,6 +221,7 @@ rule snpeff_annotate:
         annotated_stats="results/all_samples_genotyped_annotated.vcf.gz.html"
     conda:
         "envs/snpeff.yaml"
+    threads:8
     shell:
     #-download flag need not be added to snpeff
         """
