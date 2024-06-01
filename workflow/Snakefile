@@ -9,7 +9,7 @@ with open("data/samples.txt") as f:
 # names = ["BOSTON_CJD29_CJD29", "BOSTON_CJD40_CJD40"]  # Add your sample names here
 
 # --- Pipeline Rules --- #
-localrules: all,getreference,bam_index,variant_stats
+localrules: all,getreference,bam_index,variant_stats,cohort_sample_map
 
 rule all:
     input:
