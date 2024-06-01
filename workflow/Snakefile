@@ -3,10 +3,14 @@
 # Remove the config file directory. it is not necessary.Also remove the profile file
 # --- Variables --- #
 # workdir: "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
-names = ["BOSTON_CJD29_CJD29", "BOSTON_CJD40_CJD40"]  # Add your sample names here
+with open("data/samples.txt") as f:
+    names = [line.strip() for line in f] # Remeber to create the samples.txt file in the data directory
+
+# names = ["BOSTON_CJD29_CJD29", "BOSTON_CJD40_CJD40"]  # Add your sample names here
 
 # --- Pipeline Rules --- #
 localrules: all,getreference,bam_index,variant_stats
+
 rule all:
     input:
         bam_index = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai", sample = names),
@@ -113,6 +117,7 @@ rule call_variants:
         intervals="reference/xgen_plus_spikein.b38.bed"
     output:
         vcf="results/vcf/{sample}.g.vcf"
+        vcf_idx="results/vcf/{sample}.g.vcf.idx"
     params:
         padding=50
     conda:
@@ -139,6 +144,17 @@ rule variant_stats:
         """
         bcftools stats {input.vcf} > {output.vcf_stats}
         """
+
+rule cohort_sample_map:
+    input:
+        vcf=expand("results/vcf/{sample}.g.vcf", sample=names)
+    output:
+        sample_map="reference/cohort.sample_map"
+    run:
+        with open("reference/cohort.sample_map", "w") as f:
+            for vcf in snakemake.input.vcf:
+                sample = vcf.split("/")[-1].split(".")[0]
+                f.write(f"{sample}\t{vcf}\n")
 
 rule genomic_db_import:
     input:
