@@ -4,4 +4,3 @@ channels:
   - conda-forge
 dependencies:
   - deepvariant=1.4.0
-  - numpy=1.23.0
