@@ -4,6 +4,5 @@ channels:
   - conda-forge
 dependencies:
   # - deepvariant=1.4.0
-  - deepvariant=0.10.0
-  - tensorflow-estimator=2.0.0
-  - unzip=6.0
+  - deepvariant
+  - numpy
