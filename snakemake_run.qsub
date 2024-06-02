@@ -12,4 +12,5 @@ module load miniconda/23.11.0
 module load snakemake/8.11.3
 mamba activate /share/pkg.8/snakemake/8.11.3/install/snakemake
 
-snakemake -s workflow/Snakefile --cores 8 --sdm conda --executor cluster-generic --cluster-generic-submit-cmd "qsub -P cjdgenomics -pe omp {threads} -l mem_per_core=8G -cwd -j y -N varcallpipeline" --jobs 5 --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/" --latency-wait 100
+
+snakemake -s workflow/Snakefile --cores 8 --sdm conda --executor cluster-generic --cluster-generic-submit-cmd "qsub -P cjdgenomics -pe omp {threads} -l mem_per_core=8G -cwd -j y -N varcallpipeline" --jobs 22 --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/" --latency-wait 100
