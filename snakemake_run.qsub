@@ -20,9 +20,9 @@ snakemake -s workflow/Snakefile --unlock --directory "/restricted/projectnb/cjdg
 #  --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/" 
 
 # The following code will run all the other files even if the script is updated
-snakemake -s workflow/Snakefile --sdm conda --cores 8 --jobs 22 --latency-wait 100 --rerun-triggers mtime\
+snakemake -s workflow/Snakefile --sdm conda --cores 8 --jobs 22 --latency-wait 100 --rerun-triggers mtime \
 --executor cluster-generic --cluster-generic-submit-cmd "qsub -P cjdgenomics -pe omp {threads} -l mem_per_core=8G -cwd -j y -N varcallpipeline" \
---directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/" --latency-wait 100 --rerun-triggers mtime
+--directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
 
 # This it to check the dry run of the pipeline
 # snakemake -s workflow/Snakefile -np -d "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
