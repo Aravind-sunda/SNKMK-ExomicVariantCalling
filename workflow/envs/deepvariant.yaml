@@ -1,0 +1,11 @@
+name: deepvariant
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - deepvariant=1.4.0
+  - python=3.7
+  - tensorflow=1.13.1
+  - numpy=1.23.0
+  - pandas
+  - matplotlib
