@@ -265,7 +265,7 @@ rule deepvariant_gvcf:
     params:
         model="wes",   # {wgs, wes, pacbio, hybrid}
         extra=""
-    threads: 2
+    threads: 8
     conda:
         "envs/deepvariant.yaml"
     log:
@@ -279,7 +279,8 @@ rule merge_vcfs:
         gvcf=expand("results/deepvariant/gvcfs/dv_{sample}.g.vcf.gz", sample=names)
     output:
         vcf_merged="results/deepvariant/vcf/dv_all_samples.vcf.gz",
-        gvcf_merged="results/deepvariant/gvcfs/dv_all_samples.g.vcf.gz"
+        gvcf_merged="results/deepvariant/gvcfs/dv_all_samples.g.vcf.gz",
+
     conda:
         "envs/bcftools.yaml"
     shell:
