@@ -83,7 +83,7 @@ rule mark_duplicates:
         -O {output.bam_dedup} \
         --metrics-file {output.dedup_metrics} \
         --QUIET --tmp-dir /restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP \
-        --conf 'spark.executor.cores=8' \
+        # --conf 'spark.executor.cores=8' \
         --conf 'spark.executor.memory=8g' \
         --spark-master local[8]
         """
