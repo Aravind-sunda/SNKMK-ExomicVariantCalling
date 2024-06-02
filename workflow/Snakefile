@@ -72,14 +72,20 @@ rule mark_duplicates:
         bam_dedup="results/{sample}/{sample}.aligned_dedup.bam",
         dedup_metrics="results/{sample}/{sample}.dedupmetrics.txt"
         # Not used in the next file. Define in rule all?
-    threads:16
+    threads:8
     conda:
         "envs/gatk.yaml"
     shell:
     # Adding termporary directory to avoid the error of not having enough space in the /tmp directory
     # Adding the cores to 8 to ensure that not all cores are used and the reaper does not terminate the process.
         """
-        gatk MarkDuplicatesSpark -I {input.bam_processed} -O {output.bam_dedup} --metrics-file {output.dedup_metrics} --QUIET --tmp-dir /restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP --conf 'spark.executor.cores=8' --spark-master local[8]
+        gatk MarkDuplicatesSpark -I {input.bam_processed} \
+        -O {output.bam_dedup} \
+        --metrics-file {output.dedup_metrics} \
+        --QUIET --tmp-dir /restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP \
+        --conf 'spark.executor.cores=8' \
+        --conf 'spark.executor.memory=8g' \
+        --spark-master local[8]
         """
 
 rule base_recalibration:

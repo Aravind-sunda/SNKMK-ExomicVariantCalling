@@ -7,6 +7,7 @@ set -e
 #$ -N snakemakerun      #Give job name
 #$ -pe omp 8
 #$ -l mem_per_core=8G
+#S -l h_rt=24:00:00
 
 module load miniconda/23.11.0
 module load snakemake/8.11.3
