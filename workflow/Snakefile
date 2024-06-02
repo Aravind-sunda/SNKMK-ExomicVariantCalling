@@ -1,4 +1,8 @@
 # Snakefile
+# Workflow adapted from :
+# 1) https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9163752/
+# 2) https://github.com/kpatel427/YouTubeTutorials/blob/main/variant_calling.sh
+
 # Notes:
 # Remove the config file directory. it is not necessary.Also remove the profile file
 # --- Variables --- #
@@ -41,10 +45,12 @@ rule cram_to_bam:
     conda:
         "envs/samtools.yaml"
     shell:
+    # -n sorts by name
+    # -m sets memory    
     # Explanation: 
     #1. Sort the cram file by name
-    #2. Fixmate the sorted cram file
-    #3. Sort the fixmated bam file by chromosome
+    #2. Fixmate the sorted cram file# (Expects the BAM to be sorted according to names and is only for paired end sequencing 
+    #3. Sort the fixmated bam file by chromosome(GATK requires files to be sorted according to their genomic coordinates)
         """
         samtools sort -n -@ {threads} -m {params.memory} -O BAM {input.cram} | \
         samtools fixmate -m -O BAM - - | \
@@ -55,9 +61,9 @@ rule bam_index:
     input:
         bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam"
     output:
+    # Important that it has to mention bam.bai. Otherwise, it will not be recognized as an index file.
+    # Technically not used in the next rule. The tool however used this. Define in rule all?
         bam_index="results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai"
-        # Important that it has to mention bam.bai. Otherwise, it will not be recognized as an index file.
-        # Technically not used in the next rule. The tool however used this. Define in rule all?
     conda:
         "envs/samtools.yaml"    
     shell:
@@ -69,22 +75,29 @@ rule mark_duplicates:
     input:
         bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam"
     output:
+    # dedup_metrics not used in the next file. Define in rule all?
         bam_dedup="results/{sample}/{sample}.aligned_dedup.bam",
-        dedup_metrics="results/{sample}/{sample}.dedupmetrics.txt"
-        # Not used in the next file. Define in rule all?
+        # dedup_metrics="results/{sample}/{sample}.dedupmetrics.txt"
     threads:8
     conda:
         "envs/gatk.yaml"
     shell:
     # Adding termporary directory to avoid the error of not having enough space in the /tmp directory
     # Adding the cores to 8 to ensure that not all cores are used and the reaper does not terminate the process.
+    # Removing the cores and adding the spark master to local[8] to ensure that the process is run on 8 cores.
+    # --spark-master local[8]
         """
         gatk MarkDuplicatesSpark -I {input.bam_processed} \
         -O {output.bam_dedup} \
-        --metrics-file {output.dedup_metrics} \
+        # --metrics-file {output.dedup_metrics} \
         --QUIET --tmp-dir /restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP \
-        # --conf 'spark.executor.cores=8' \
+        --conf 'spark.executor.cores=7' \
         --conf 'spark.executor.memory=8g' \
+        --conf 'spark.driver.memory=4g' \
+        --conf 'spark.driver.cores=1' \
+        --conf 'spark.task.cpus=1' \
+        --conf 'spark.dynamicAllocation.enabled=false' \
+        --conf 'spark.local.dir=/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP' \
         --spark-master local[8]
         """
 
@@ -211,6 +224,10 @@ rule genotype_gvcfs:
     # remember to check the input db path and make sure that it works
     # gendb:// is a prefix that is used to indicate that the input is a GenomicsDB workspace. It has to have 3 (///) slashes if you are not doing a variable.
     # Snakemake by default uses 2 slashes. So, if you are using a variable, you have to add an extra slash. 
+    # NOTE: The VCF_DB folder should not be generated first. The command will generate it for you
+    # Merge input intervals needed for Whole Exome Sequencing cause there is more than a 100 intervals in the list
+    # tmp-dir not needed, if needed to use, use scrap of scc
+    # --tmp-dir /restricted/projectnb/cjdgenomics/CJD-Regeneron-VariantCalling/temp_dir/ \
         """
         gatk GenotypeGVCFs \
         -R {input.reference} \
