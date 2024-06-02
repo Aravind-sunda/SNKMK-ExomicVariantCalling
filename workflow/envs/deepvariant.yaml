@@ -3,6 +3,5 @@ channels:
   - bioconda
   - conda-forge
 dependencies:
-  # - deepvariant=1.4.0
   - deepvariant
   - numpy
