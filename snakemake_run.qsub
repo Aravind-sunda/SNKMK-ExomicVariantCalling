@@ -25,5 +25,10 @@ snakemake -s workflow/Snakefile --sdm conda --cores 8 --jobs 22 --latency-wait 1
 --executor cluster-generic --cluster-generic-submit-cmd "qsub -P cjdgenomics -pe omp {threads} -l mem_per_core=8G -cwd -j y -N varcallpipeline" \
 --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
 
+# The following code will be used to run the deepvariant code in the pipeline
+snakemake -s workflow/Snakefile --cores 8 --jobs 22 --latency-wait 100 --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/" \
+--use-singularity -n
+# --singularity-args "--bind /restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/:/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
+
 # This it to check the dry run of the pipeline
 # snakemake -s workflow/Snakefile -np -d "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"

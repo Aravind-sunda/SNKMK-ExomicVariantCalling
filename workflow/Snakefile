@@ -320,7 +320,7 @@ rule deepvariant:
     input:
         bam = "results/{sample}/{sample}.aligned_fixmates_sorted.bam",
         ref = "reference/genome.fa",
-        idx = "reference/genome.fa.fai"
+        idx = "reference/genome.fa.fai",
         temp_dir = directory("/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP")
         
     output:
