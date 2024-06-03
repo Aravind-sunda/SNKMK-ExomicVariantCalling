@@ -21,8 +21,10 @@ rule all:
         # vcf_stats=expand("results/{sample}/{sample}.stats", sample = names),
         # annotated_vcf="results/all_samples_genotyped_annotated.vcf.gz",
         # annotated_stats="results/all_samples_genotyped_annotated.vcf.gz.html",
-        vcf_merged="results/deepvariant/vcf/dv_all_samples.vcf.gz",
-        gvcf_merged="results/deepvariant/gvcfs/dv_all_samples.g.vcf.gz"
+        # vcf_merged="results/deepvariant/vcf/dv_all_samples.vcf.gz",
+        # gvcf_merged="results/deepvariant/gvcfs/dv_all_samples.g.vcf.gz",
+        vcf=expand("results/deepvariant/vcf/dv_{sample}.vcf.gz",sample=names),
+        gvcf=expand("results/deepvariant/gvcfs/dv_{sample}.g.vcf.gz",sample=names)
 
 
 # rule getreference:
@@ -36,29 +38,29 @@ rule all:
 #         tar -xvzf reference/h38flat.fasta-index.tar.gz
 #         """
 
-# rule cram_to_bam:
-#     input:
-#         cram="data/{sample}.aligned.cram",
-#         reference="reference/genome.fa"
-#     output:
-#         bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam"
-#     threads:8
-#     params:
-#         memory="8G"
-#     conda:
-#         "envs/samtools.yaml"
-#     shell:
-#     # -n sorts by name
-#     # -m sets memory    
-#     # Explanation: 
-#     #1. Sort the cram file by name
-#     #2. Fixmate the sorted cram file# (Expects the BAM to be sorted according to names and is only for paired end sequencing 
-#     #3. Sort the fixmated bam file by chromosome(GATK requires files to be sorted according to their genomic coordinates)
-#         """
-#         samtools sort -n -@ {threads} -m {params.memory} -O BAM {input.cram} | \
-#         samtools fixmate -m -O BAM - - | \
-#         samtools sort -@ {threads} -m {params.memory} -O BAM -o {output.bam_processed} -
-#         """
+rule cram_to_bam:
+    input:
+        cram="data/{sample}.aligned.cram",
+        reference="reference/genome.fa"
+    output:
+        bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam"
+    threads:8
+    params:
+        memory="8G"
+    conda:
+        "envs/samtools.yaml"
+    shell:
+    # -n sorts by name
+    # -m sets memory    
+    # Explanation: 
+    #1. Sort the cram file by name
+    #2. Fixmate the sorted cram file# (Expects the BAM to be sorted according to names and is only for paired end sequencing 
+    #3. Sort the fixmated bam file by chromosome(GATK requires files to be sorted according to their genomic coordinates)
+        """
+        samtools sort -n -@ {threads} -m {params.memory} -O BAM {input.cram} | \
+        samtools fixmate -m -O BAM - - | \
+        samtools sort -@ {threads} -m {params.memory} -O BAM -o {output.bam_processed} -
+        """
 
 # rule bam_index:
 #     input:
@@ -76,7 +78,8 @@ rule all:
 
 # rule mark_duplicates:
 #     input:
-#         bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam"
+#         bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam",
+#         temp_dir = directory("/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP")
 #     output:
 #     # dedup_metrics not used in the next file. Define in rule all?
 #         bam_dedup="results/{sample}/{sample}.aligned_dedup.bam",
@@ -93,7 +96,7 @@ rule all:
 #         gatk MarkDuplicatesSpark -I {input.bam_processed} \
 #         -O {output.bam_dedup} \
 #         --metrics-file {output.dedup_metrics} \
-#         --QUIET --tmp-dir /restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP \
+#         --QUIET --tmp-dir {input.temp_dir} \
 #         --conf 'spark.executor.cores=6' \
 #         --conf 'spark.executor.memory=8g' \
 #         --conf 'spark.driver.memory=4g' \
@@ -312,4 +315,34 @@ rule all:
 #         bcftools merge -O z -m none -o {output.vcf_merged} {input.vcf}
 #         bcftools merge -O z -m none -o {output.gvcf_merged} {input.gvcf}
 #         """
+
+rule deepvariant:
+    input:
+        bam = "results/{sample}/{sample}.aligned_fixmates_sorted.bam",
+        ref = "reference/genome.fa",
+        idx = "reference/genome.fa.fai"
+        temp_dir = directory("/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP")
+        
+    output:
+        vcf="results/deepvariant/vcf/dv_{sample}.vcf.gz",
+        gvcf="results/deepvariant/gvcfs/dv_{sample}.g.vcf.gz"
+    threads:8
+    singularity:
+        "docker://google/deepvariant:1.6.1"
+    shell:
+        """
+        singularity run -B /usr/lib/locale/:/usr/lib/locale/ \
+        docker://google/deepvariant:1.6.1 \
+        /opt/deepvariant/bin/run_deepvariant \
+        --model_type=WES \
+        --ref={input.ref} \
+        --reads={input.bam} \
+        # --regions "chr20:10,000,000-10,010,000" \
+        --output_vcf={output.vcf} \
+        --output_gvcf={output.gvcf} \
+        --intermediate_results_dir {input.temp_dir} \
+        --num_shards={threads}
+        """
+
+
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
