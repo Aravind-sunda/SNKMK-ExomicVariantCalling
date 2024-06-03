@@ -321,7 +321,9 @@ rule deepvariant:
         bam = "results/{sample}/{sample}.aligned_fixmates_sorted.bam",
         ref = "reference/genome.fa",
         idx = "reference/genome.fa.fai",
-        temp_dir = directory("/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP")
+        temp_dir = directory("/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP"),
+        input_dir = directory("results/{sample}"),
+        # output_dir = directory("results/deepvariant")
         
     output:
         vcf="results/deepvariant/vcf/dv_{sample}.vcf.gz",
@@ -330,19 +332,33 @@ rule deepvariant:
     singularity:
         "docker://google/deepvariant:1.6.1"
     shell:
+        # """
+        # scc-singularity run -B /usr/lib/locale/:/usr/lib/locale/ \
+        # docker://google/deepvariant:1.6.1 \
+        # /opt/deepvariant/bin/run_deepvariant \
+        # --model_type=WES \
+        # --ref={input.ref} \
+        # --reads={input.bam} \
+        # # --regions "chr20:10,000,000-10,010,000" \
+        # --output_vcf={output.vcf} \
+        # --output_gvcf={output.gvcf} \
+        # --intermediate_results_dir {input.temp_dir} \
+        # --num_shards={threads}
+        # """
         """
-
-        scc-singularity run -B /usr/lib/locale/:/usr/lib/locale/ \
-        docker://google/deepvariant:1.6.1 \
+        docker run \
+        -v {input.input_dir}:"/input" \
+        -v "results/deepvariant":"/output" \
+        google/deepvariant:1.6.1 \
         /opt/deepvariant/bin/run_deepvariant \
-        --model_type=WES \
+        --model_type=WES \  
         --ref={input.ref} \
         --reads={input.bam} \
-        # --regions "chr20:10,000,000-10,010,000" \
         --output_vcf={output.vcf} \
         --output_gvcf={output.gvcf} \
+        --num_shards=8 \
         --intermediate_results_dir {input.temp_dir} \
-        --num_shards={threads}
+        --dry_run=false
         """
 
 
