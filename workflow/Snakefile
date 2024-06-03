@@ -331,7 +331,8 @@ rule deepvariant:
         "docker://google/deepvariant:1.6.1"
     shell:
         """
-        singularity run -B /usr/lib/locale/:/usr/lib/locale/ \
+
+        scc-singularity run -B /usr/lib/locale/:/usr/lib/locale/ \
         docker://google/deepvariant:1.6.1 \
         /opt/deepvariant/bin/run_deepvariant \
         --model_type=WES \
