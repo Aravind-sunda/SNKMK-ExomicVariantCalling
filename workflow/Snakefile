@@ -329,7 +329,7 @@ rule deepvariant:
         vcf="results/deepvariant/vcf/dv_{sample}.vcf.gz",
         gvcf="results/deepvariant/gvcfs/dv_{sample}.g.vcf.gz"
     threads:8
-    singularity:
+    container:
         "docker://google/deepvariant:1.6.1"
     shell:
         # """
