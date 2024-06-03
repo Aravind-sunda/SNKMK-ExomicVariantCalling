@@ -267,7 +267,7 @@ rule deepvariant_gvcf:
         extra=""
     threads: 8
     conda:
-        "envs/deepvariant.yaml"
+        "deepvariant"
     log:
         "logs/deepvariant/{sample}/stdout.log"
     wrapper:
