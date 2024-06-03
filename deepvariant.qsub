@@ -1,0 +1,76 @@
+#!/bin/bash -l
+set -e 
+
+#$ -P cjdgenomics
+#$ -cwd
+#$ -j y
+#$ -N deepvariant      #Give job name
+#$ -pe omp 8
+#$ -l mem_per_core=8G
+
+
+
+PWD="/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430"
+BAM="results/BOSTON_CJD29_CJD29/BOSTON_CJD29_CJD29.aligned_fixmates_sorted.bam"
+REF="reference/genome.fa"
+IDX="reference/genome.fa.fai"
+TEMP_DIR="OUTPUTS-TEMP"
+INPUT_DIR="results/BOSTON_CJD29_CJD29"
+VCF="results/deepvariant/vcf/dv_BOSTON_CJD29_CJD29.vcf.gz"
+GVCF="results/deepvariant/gvcfs/dv_BOSTON_CJD29_CJD29.g.vcf.gz"
+THREADS=8
+
+scc-singularity run -B /usr/lib/locale/:/usr/lib/locale/ -B ${PWD}:${PWD} \
+    docker://google/deepvariant:1.6.1 \
+    /opt/deepvariant/bin/run_deepvariant \
+    --model_type=WES \
+    --ref=${PWD}/${REF} \
+    --reads=${PWD}/${BAM} \
+    --output_vcf=${PWD}/${VCF} \
+    --output_gvcf=${PWD}/${GVCF} \
+    --intermediate_results_dir ${PWD}/${TEMP_DIR} \
+    --num_shards=${THREADS}
+
+#!/bin/bash
+
+scc-singularity run -B /usr/lib/locale/:/usr/lib/locale/ -B /restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430:/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430 \
+    docker://google/deepvariant:1.6.1 \
+    /opt/deepvariant/bin/run_deepvariant \
+    --model_type=WES \
+    --ref=/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/reference/genome.fa \
+    --reads=/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/results/BOSTON_CJD29_CJD29/BOSTON_CJD29_CJD29.aligned_fixmates_sorted.bam \
+    --output_vcf=/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/results/deepvariant/vcf/dv_BOSTON_CJD29_CJD29.vcf.gz \
+    --output_gvcf=/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/results/deepvariant/gvcfs/dv_BOSTON_CJD29_CJD29.g.vcf.gz \
+    --intermediate_results_dir /restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP \
+    --num_shards=8
+
+singularity exec c481c63895d3b82408ab340a8781e1f0.simg /opt/deepvariant/bin/run_deepvariant \
+    --model_type=WES \
+    --ref=/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/reference/genome.fa \
+    --reads=/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/results/BOSTON_CJD29_CJD29/BOSTON_CJD29_CJD29.aligned_fixmates_sorted.bam \
+    --output_vcf=/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/results/deepvariant/vcf/dv_BOSTON_CJD29_CJD29.vcf.gz \
+    --output_gvcf=/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/results/deepvariant/gvcfs/dv_BOSTON_CJD29_CJD29.g.vcf.gz \
+    --intermediate_results_dir "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP" \
+    --num_shards=8
+
+singularity exec -B /usr/lib/locale/:/usr/lib/locale/ -B /restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430:/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430 deepvariant_container.sif /opt/deepvariant/bin/run_deepvariant \
+    --model_type=WES \
+    --ref=/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/reference/genome.fa \
+    --reads=/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/results/BOSTON_CJD29_CJD29/BOSTON_CJD29_CJD29.aligned_fixmates_sorted.bam \
+    --output_vcf=/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/results/deepvariant/vcf/dv_BOSTON_CJD29_CJD29.vcf.gz \
+    --output_gvcf=/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/results/deepvariant/gvcfs/dv_BOSTON_CJD29_CJD29.g.vcf.gz \
+    --intermediate_results_dir "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP" \
+    --num_shards=8
+
+sh scc-i01
+BIN_VERSION="1.6.1"
+singularity pull deepvariant_container.sif docker://google/deepvariant:"${BIN_VERSION}"
+mv deepvariant_container.sif /projectnb/<your_own_SCC_project_space>
+
+cd /projectnb/<your_own_SCC_project_space>
+#It needs to call a specific script inside the container:
+singularity exec deepvariant_container.sif /opt/deepvariant/bin/run_deepvariant
+# --model_type is required.
+# Pass --helpshort or --helpfull to see help on flags.
+singularity exec deepvariant_container.sif /opt/deepvariant/bin/run_deepvariant --helpfull
+#Prints the help message

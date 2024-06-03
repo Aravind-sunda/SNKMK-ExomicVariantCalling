@@ -17,26 +17,26 @@ localrules: all,getreference,bam_index,variant_stats,cohort_sample_map
 
 rule all:
     input:
-        # bam_index = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai", sample = names),
-        # vcf_stats=expand("results/{sample}/{sample}.stats", sample = names),
-        # annotated_vcf="results/all_samples_genotyped_annotated.vcf.gz",
-        # annotated_stats="results/all_samples_genotyped_annotated.vcf.gz.html",
+        bam_index = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai", sample = names),
+        vcf_stats=expand("results/{sample}/{sample}.stats", sample = names),
+        annotated_vcf="results/all_samples_genotyped_annotated.vcf.gz",
+        annotated_stats="results/all_samples_genotyped_annotated.vcf.gz.html"
         # vcf_merged="results/deepvariant/vcf/dv_all_samples.vcf.gz",
         # gvcf_merged="results/deepvariant/gvcfs/dv_all_samples.g.vcf.gz",
-        vcf=expand("results/deepvariant/vcf/dv_{sample}.vcf.gz",sample=names),
-        gvcf=expand("results/deepvariant/gvcfs/dv_{sample}.g.vcf.gz",sample=names)
+        # vcf=expand("results/deepvariant/vcf/dv_{sample}.vcf.gz",sample=names),
+        # gvcf=expand("results/deepvariant/gvcfs/dv_{sample}.g.vcf.gz",sample=names)
 
 
-# rule getreference:
-# # Remember to add the other references in this file as well. such as known sites
-#     output:
-#         reference="reference/genome.fa",
-#         reference_idx="reference/genome.fa.fai"
-#     shell:
-#         """
-#         wget -P reference/ https://dl.dnanex.us/F/D/734xvkZG02bbF5vF1bZ93G03ZK1g6x64ffVYkyBk/h38flat.fasta-index.tar.gz 
-#         tar -xvzf reference/h38flat.fasta-index.tar.gz
-#         """
+rule getreference:
+# Remember to add the other references in this file as well. such as known sites
+    output:
+        reference="reference/genome.fa",
+        reference_idx="reference/genome.fa.fai"
+    shell:
+        """
+        wget -P reference/ https://dl.dnanex.us/F/D/734xvkZG02bbF5vF1bZ93G03ZK1g6x64ffVYkyBk/h38flat.fasta-index.tar.gz 
+        tar -xvzf reference/h38flat.fasta-index.tar.gz
+        """
 
 rule cram_to_bam:
     input:
@@ -62,226 +62,226 @@ rule cram_to_bam:
         samtools sort -@ {threads} -m {params.memory} -O BAM -o {output.bam_processed} -
         """
 
-# rule bam_index:
-#     input:
-#         bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam"
-#     output:
-#     # Important that it has to mention bam.bai. Otherwise, it will not be recognized as an index file.
-#     # Technically not used in the next rule. The tool however used this. Define in rule all?
-#         bam_index="results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai"
-#     conda:
-#         "envs/samtools.yaml"    
-#     shell:
-#         """
-#         samtools index {input.bam_processed} 
-#         """
+rule bam_index:
+    input:
+        bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam"
+    output:
+    # Important that it has to mention bam.bai. Otherwise, it will not be recognized as an index file.
+    # Technically not used in the next rule. The tool however used this. Define in rule all?
+        bam_index="results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai"
+    conda:
+        "envs/samtools.yaml"    
+    shell:
+        """
+        samtools index {input.bam_processed} 
+        """
 
-# rule mark_duplicates:
-#     input:
-#         bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam",
-#         temp_dir = directory("/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP")
-#     output:
-#     # dedup_metrics not used in the next file. Define in rule all?
-#         bam_dedup="results/{sample}/{sample}.aligned_dedup.bam",
-#         dedup_metrics="results/{sample}/{sample}.dedupmetrics.txt"
-#     threads:8
-#     conda:
-#         "envs/gatk.yaml"
-#     shell:
-#     # Adding termporary directory to avoid the error of not having enough space in the /tmp directory
-#     # Adding the cores to 8 to ensure that not all cores are used and the reaper does not terminate the process.
-#     # Removing the cores and adding the spark master to local[8] to ensure that the process is run on 8 cores.
-#     # --spark-master local[8]
-#         """
-#         gatk MarkDuplicatesSpark -I {input.bam_processed} \
-#         -O {output.bam_dedup} \
-#         --metrics-file {output.dedup_metrics} \
-#         --QUIET --tmp-dir {input.temp_dir} \
-#         --conf 'spark.executor.cores=6' \
-#         --conf 'spark.executor.memory=8g' \
-#         --conf 'spark.driver.memory=4g' \
-#         --conf 'spark.driver.cores=1' \
-#         --conf 'spark.task.cpus=1' \
-#         --conf 'spark.dynamicAllocation.enabled=false' \
-#         --conf 'spark.local.dir=/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP' \
-#         --spark-master local[8]
-#         """
+rule mark_duplicates:
+    input:
+        bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam",
+        temp_dir = directory("/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP")
+    output:
+    # dedup_metrics not used in the next file. Define in rule all?
+        bam_dedup="results/{sample}/{sample}.aligned_dedup.bam",
+        dedup_metrics="results/{sample}/{sample}.dedupmetrics.txt"
+    threads:8
+    conda:
+        "envs/gatk.yaml"
+    shell:
+    # Adding termporary directory to avoid the error of not having enough space in the /tmp directory
+    # Adding the cores to 8 to ensure that not all cores are used and the reaper does not terminate the process.
+    # Removing the cores and adding the spark master to local[8] to ensure that the process is run on 8 cores.
+    # --spark-master local[8]
+        """
+        gatk MarkDuplicatesSpark -I {input.bam_processed} \
+        -O {output.bam_dedup} \
+        --metrics-file {output.dedup_metrics} \
+        --QUIET --tmp-dir {input.temp_dir} \
+        --conf 'spark.executor.cores=6' \
+        --conf 'spark.executor.memory=8g' \
+        --conf 'spark.driver.memory=4g' \
+        --conf 'spark.driver.cores=1' \
+        --conf 'spark.task.cpus=1' \
+        --conf 'spark.dynamicAllocation.enabled=false' \
+        --conf 'spark.local.dir=/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP' \
+        --spark-master local[8]
+        """
 
-# rule base_recalibration:
-#     input:
-#         bam_dedup="results/{sample}/{sample}.aligned_dedup.bam",
-#         reference="reference/genome.fa",
-#         intervals="reference/xgen_plus_spikein.b38.bed",
-#         known_sites="reference/dbsnp144.b38.vcf"
-#     output:
-#         recal_table="results/{sample}/{sample}.recal.table",
-#         bam_bqsr="results/{sample}/{sample}_aligned_dedupreads_bqsr.bam"
-#     params:
-#         padding=50
-#     conda:
-#         "envs/gatk.yaml"
-#     threads:8   
-#     shell:
-#         """
-#         gatk BaseRecalibrator --input {input.bam_dedup} \
-#         --reference {input.reference} \
-#         --known-sites {input.known_sites} \
-#         --intervals {input.intervals} \
-#         --interval-padding {params.padding} \
-#         --output {output.recal_table} --QUIET 
+rule base_recalibration:
+    input:
+        bam_dedup="results/{sample}/{sample}.aligned_dedup.bam",
+        reference="reference/genome.fa",
+        intervals="reference/xgen_plus_spikein.b38.bed",
+        known_sites="reference/dbsnp144.b38.vcf"
+    output:
+        recal_table="results/{sample}/{sample}.recal.table",
+        bam_bqsr="results/{sample}/{sample}_aligned_dedupreads_bqsr.bam"
+    params:
+        padding=50
+    conda:
+        "envs/gatk.yaml"
+    threads:8   
+    shell:
+        """
+        gatk BaseRecalibrator --input {input.bam_dedup} \
+        --reference {input.reference} \
+        --known-sites {input.known_sites} \
+        --intervals {input.intervals} \
+        --interval-padding {params.padding} \
+        --output {output.recal_table} --QUIET 
 
-#         gatk ApplyBQSR -I {input.bam_dedup} \
-#         -R {input.reference} \
-#         --bqsr-recal-file {output.recal_table} \
-#         --output {output.bam_bqsr} \
-#         --QUIET
-#         """
+        gatk ApplyBQSR -I {input.bam_dedup} \
+        -R {input.reference} \
+        --bqsr-recal-file {output.recal_table} \
+        --output {output.bam_bqsr} \
+        --QUIET
+        """
 
-# rule call_variants:
-#     input:
-#         bam_bqsr="results/{sample}/{sample}_aligned_dedupreads_bqsr.bam",
-#         reference="reference/genome.fa",
-#         intervals="reference/xgen_plus_spikein.b38.bed"
-#     output:
-#         vcf="results/vcf/{sample}.g.vcf",
-#         vcf_idx="results/vcf/{sample}.g.vcf.idx"
-#     params:
-#         padding=50
-#     conda:
-#         "envs/gatk.yaml"
-#     threads:8 
-#     shell:
-#         """
-#         gatk HaplotypeCaller -I {input.bam_bqsr} \
-#         -R {input.reference} \
-#         --intervals {input.intervals} \
-#         --interval-padding {params.padding} \
-#         -O {output.vcf} \
-#         -ERC GVCF \
-#         --QUIET
-#         """
+rule call_variants:
+    input:
+        bam_bqsr="results/{sample}/{sample}_aligned_dedupreads_bqsr.bam",
+        reference="reference/genome.fa",
+        intervals="reference/xgen_plus_spikein.b38.bed"
+    output:
+        vcf="results/vcf/{sample}.g.vcf",
+        vcf_idx="results/vcf/{sample}.g.vcf.idx"
+    params:
+        padding=50
+    conda:
+        "envs/gatk.yaml"
+    threads:8 
+    shell:
+        """
+        gatk HaplotypeCaller -I {input.bam_bqsr} \
+        -R {input.reference} \
+        --intervals {input.intervals} \
+        --interval-padding {params.padding} \
+        -O {output.vcf} \
+        -ERC GVCF \
+        --QUIET
+        """
 
-# rule variant_stats:
-#     input: 
-#         vcf="results/vcf/{sample}.g.vcf"
-#     output:
-#         vcf_stats="results/{sample}/{sample}.stats" 
-#     conda:
-#         "envs/bcftools.yaml" 
-#     shell: 
-#         """
-#         bcftools stats {input.vcf} > {output.vcf_stats}
-#         """
+rule variant_stats:
+    input: 
+        vcf="results/vcf/{sample}.g.vcf"
+    output:
+        vcf_stats="results/{sample}/{sample}.stats" 
+    conda:
+        "envs/bcftools.yaml" 
+    shell: 
+        """
+        bcftools stats {input.vcf} > {output.vcf_stats}
+        """
 
-# rule cohort_sample_map:
-#     input:
-#         vcf=expand("results/vcf/{sample}.g.vcf", sample=names)
-#     output:
-#         sample_map="reference/cohort.sample_map"
-#     run:
-#         with open("reference/cohort.sample_map", "w") as f:
-#             for i, vcf in enumerate(input.vcf):
-#                 sample = vcf.split("/")[-1].split(".")[0]
-#                 f.write(f"{sample}\t{vcf}")
-#                 if i < len(input.vcf) - 1:
-#                 # Add newline except for the last line since we do not want an empty line at the end.
-#                     f.write("\n")  
+rule cohort_sample_map:
+    input:
+        vcf=expand("results/vcf/{sample}.g.vcf", sample=names)
+    output:
+        sample_map="reference/cohort.sample_map"
+    run:
+        with open("reference/cohort.sample_map", "w") as f:
+            for i, vcf in enumerate(input.vcf):
+                sample = vcf.split("/")[-1].split(".")[0]
+                f.write(f"{sample}\t{vcf}")
+                if i < len(input.vcf) - 1:
+                # Add newline except for the last line since we do not want an empty line at the end.
+                    f.write("\n")  
 
-# rule genomic_db_import:
-#     input:
-#         vcf=expand("results/vcf/{sample}.g.vcf", sample=names),
-#         reference="reference/genome.fa",
-#         sample_map="reference/cohort.sample_map",       ## REMEMBER TO CREATE THIS FILE
-#         intervals="reference/xgen_plus_spikein.b38.bed"
-#     output:
-#         db=directory("VCF_DB")           
-#     params:
-#         padding=50
-#     conda:
-#         "envs/gatk.yaml"
-#     threads:8        
-#     shell:
-#     # Note: have to create a sample map file before hand. It is one of the necessary inputs.
-#     # Have to remove the vcfdb directory before running the command.
-#         """
-#         rm -rf {output.db}
+rule genomic_db_import:
+    input:
+        vcf=expand("results/vcf/{sample}.g.vcf", sample=names),
+        reference="reference/genome.fa",
+        sample_map="reference/cohort.sample_map",       ## REMEMBER TO CREATE THIS FILE
+        intervals="reference/xgen_plus_spikein.b38.bed"
+    output:
+        db=directory("VCF_DB")           
+    params:
+        padding=50
+    conda:
+        "envs/gatk.yaml"
+    threads:8        
+    shell:
+    # Note: have to create a sample map file before hand. It is one of the necessary inputs.
+    # Have to remove the vcfdb directory before running the command.
+        """
+        rm -rf {output.db}
 
-#         gatk --java-options "-Xmx60g -Xms60g" GenomicsDBImport \
-#         --genomicsdb-workspace-path {output.db} \
-#         --sample-name-map {input.sample_map} \
-#         --intervals {input.intervals} \
-#         --reference {input.reference} \
-#         --validate-sample-name-map true \
-#         --interval-padding {params.padding} \
-#         --merge-input-intervals true
-#         """
+        gatk --java-options "-Xmx60g -Xms60g" GenomicsDBImport \
+        --genomicsdb-workspace-path {output.db} \
+        --sample-name-map {input.sample_map} \
+        --intervals {input.intervals} \
+        --reference {input.reference} \
+        --validate-sample-name-map true \
+        --interval-padding {params.padding} \
+        --merge-input-intervals true
+        """
 
-# rule genotype_gvcfs:
-#     input:
-#         reference="reference/genome.fa",
-#         db="VCF_DB"
-#     output:
-#         genotyped_vcf="results/all_samples_genotyped.vcf.gz"
-#     # params:
-#     conda:
-#         "envs/gatk.yaml"
-#     threads:8
-#     shell:
-#     # remember to check the input db path and make sure that it works
-#     # gendb:// is a prefix that is used to indicate that the input is a GenomicsDB workspace. It has to have 3 (///) slashes if you are not doing a variable.
-#     # Snakemake by default uses 2 slashes. So, if you are using a variable, you have to add an extra slash. 
-#     # NOTE: The VCF_DB folder should not be generated first. The command will generate it for you
-#     # Merge input intervals needed for Whole Exome Sequencing cause there is more than a 100 intervals in the list
-#     # tmp-dir not needed, if needed to use, use scrap of scc
-#     # --tmp-dir /restricted/projectnb/cjdgenomics/CJD-Regeneron-VariantCalling/temp_dir/ \
-#         """
-#         gatk GenotypeGVCFs \
-#         -R {input.reference} \
-#         -V gendb://{input.db} \
-#         -O {output.genotyped_vcf}
-#         """
+rule genotype_gvcfs:
+    input:
+        reference="reference/genome.fa",
+        db="VCF_DB"
+    output:
+        genotyped_vcf="results/all_samples_genotyped.vcf.gz"
+    # params:
+    conda:
+        "envs/gatk.yaml"
+    threads:8
+    shell:
+    # remember to check the input db path and make sure that it works
+    # gendb:// is a prefix that is used to indicate that the input is a GenomicsDB workspace. It has to have 3 (///) slashes if you are not doing a variable.
+    # Snakemake by default uses 2 slashes. So, if you are using a variable, you have to add an extra slash. 
+    # NOTE: The VCF_DB folder should not be generated first. The command will generate it for you
+    # Merge input intervals needed for Whole Exome Sequencing cause there is more than a 100 intervals in the list
+    # tmp-dir not needed, if needed to use, use scrap of scc
+    # --tmp-dir /restricted/projectnb/cjdgenomics/CJD-Regeneron-VariantCalling/temp_dir/ \
+        """
+        gatk GenotypeGVCFs \
+        -R {input.reference} \
+        -V gendb://{input.db} \
+        -O {output.genotyped_vcf}
+        """
 
-# rule snpeff_annotate:
-#     input:
-#         genotyped_vcf="results/all_samples_genotyped.vcf.gz",
-#         reference="reference/genome.fa"
-#     output:
-#         annotated_vcf="results/all_samples_genotyped_annotated.vcf.gz",
-#         annotated_stats="results/all_samples_genotyped_annotated.vcf.gz.html"
-#     conda:
-#         "envs/snpeff.yaml"
-#     threads:8
-#     shell:
-#     #-download flag need not be added to snpeff
-#         """
-#         snpEff -Xmx8g -v -stats {output.annotated_stats} GRCh38.86 {input.genotyped_vcf} > {output.annotated_vcf}
-#         """   
+rule snpeff_annotate:
+    input:
+        genotyped_vcf="results/all_samples_genotyped.vcf.gz",
+        reference="reference/genome.fa"
+    output:
+        annotated_vcf="results/all_samples_genotyped_annotated.vcf.gz",
+        annotated_stats="results/all_samples_genotyped_annotated.vcf.gz.html"
+    conda:
+        "envs/snpeff.yaml"
+    threads:8
+    shell:
+    #-download flag need not be added to snpeff
+        """
+        snpEff -Xmx8g -v -stats {output.annotated_stats} GRCh38.86 {input.genotyped_vcf} > {output.annotated_vcf}
+        """   
 
 
-# rule deepvariant_gvcf:
-#     input:
-#         bam="results/{sample}/{sample}.aligned_fixmates_sorted.bam",
-#         ref="reference/genome.fa"
-#     output:
-#         vcf="results/deepvariant/vcf/dv_{sample}.vcf.gz",
-#         gvcf="results/deepvariant/gvcfs/dv_{sample}.g.vcf.gz"
-#     params:
-#         model="wes",   # {wgs, wes, pacbio, hybrid}
-#         extra=""
-#     threads: 8
-#     conda:
-#     # uses an existing environment called deepvariant in saravind directory in the cjdgenomics project scc
-#     # alternative choice is to use the deepvariant.yaml file in the envs directory. It does not work. need to find workaround with the rule below
-#         "deepvariant"
-#     log:
-#         "logs/deepvariant/{sample}/stdout.log"
-#     wrapper:
-#         "v3.10.2/bio/deepvariant"
+rule deepvariant_gvcf:
+    input:
+        bam="results/{sample}/{sample}.aligned_fixmates_sorted.bam",
+        ref="reference/genome.fa"
+    output:
+        vcf="results/deepvariant/vcf/dv_{sample}.vcf.gz",
+        gvcf="results/deepvariant/gvcfs/dv_{sample}.g.vcf.gz"
+    params:
+        model="wes",   # {wgs, wes, pacbio, hybrid}
+        extra=""
+    threads: 8
+    conda:
+    # uses an existing environment called deepvariant in saravind directory in the cjdgenomics project scc
+    # alternative choice is to use the deepvariant.yaml file in the envs directory. It does not work. need to find workaround with the rule below
+        "deepvariant"
+    log:
+        "logs/deepvariant/{sample}/stdout.log"
+    wrapper:
+        "v3.10.2/bio/deepvariant"
 
 # --- Deepvariant pipeline --- #
 
 # Adapted from : https://github.com/yiolino/snakemake-deepvariant/tree/master
-# rule call_variants:
+# rule call_variants(wrapper):
 #     input:
 #         bam = "results/{sample}/{sample}.aligned_fixmates_sorted.bam",
 #         bai = "results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai"
@@ -316,50 +316,50 @@ rule cram_to_bam:
 #         bcftools merge -O z -m none -o {output.gvcf_merged} {input.gvcf}
 #         """
 
-rule deepvariant:
-    input:
-        bam = "results/{sample}/{sample}.aligned_fixmates_sorted.bam",
-        ref = "reference/genome.fa",
-        idx = "reference/genome.fa.fai",
-        temp_dir = directory("/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP"),
-        input_dir = directory("results/{sample}"),
-        # output_dir = directory("results/deepvariant")
+# rule deepvariant(docker):
+#     input:
+#         bam = "results/{sample}/{sample}.aligned_fixmates_sorted.bam",
+#         ref = "reference/genome.fa",
+#         idx = "reference/genome.fa.fai",
+#         temp_dir = directory("/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP"),
+#         input_dir = directory("results/{sample}"),
+#         # output_dir = directory("results/deepvariant")
         
-    output:
-        vcf="results/deepvariant/vcf/dv_{sample}.vcf.gz",
-        gvcf="results/deepvariant/gvcfs/dv_{sample}.g.vcf.gz"
-    threads:8
-    container:
-        "docker://google/deepvariant:1.6.1"
-    shell:
-        """
-        # scc-singularity run -B /usr/lib/locale/:/usr/lib/locale/ \
-        docker://google/deepvariant:1.6.1 \
-        /opt/deepvariant/bin/run_deepvariant \
-        --model_type=WES \
-        --ref={input.ref} \
-        --reads={input.bam} \
-        # --regions "chr20:10,000,000-10,010,000" \
-        --output_vcf={output.vcf} \
-        --output_gvcf={output.gvcf} \
-        --intermediate_results_dir {input.temp_dir} \
-        --num_shards={threads}
-        """
-        # """
-        # docker run \
-        # -v {input.input_dir}:"/input" \
-        # -v "results/deepvariant":"/output" \
-        # google/deepvariant:1.6.1 \
-        # /opt/deepvariant/bin/run_deepvariant \
-        # --model_type=WES \  
-        # --ref={input.ref} \
-        # --reads={input.bam} \
-        # --output_vcf={output.vcf} \
-        # --output_gvcf={output.gvcf} \
-        # --num_shards=8 \
-        # --intermediate_results_dir {input.temp_dir} \
-        # --dry_run=false
-        # """
+#     output:
+#         vcf="results/deepvariant/vcf/dv_{sample}.vcf.gz",
+#         gvcf="results/deepvariant/gvcfs/dv_{sample}.g.vcf.gz"
+#     threads:8
+#     singularity:
+#         "docker://google/deepvariant:1.6.1"
+#     shell:
+#         """
+#         # scc-singularity run -B /usr/lib/locale/:/usr/lib/locale/ \
+#         docker://google/deepvariant:1.6.1 \
+#         /opt/deepvariant/bin/run_deepvariant \
+#         --model_type=WES \
+#         --ref={input.ref} \
+#         --reads={input.bam} \
+#         # --regions "chr20:10,000,000-10,010,000" \
+#         --output_vcf={output.vcf} \
+#         --output_gvcf={output.gvcf} \
+#         --intermediate_results_dir {input.temp_dir} \
+#         --num_shards={threads}
+#         """
+#         # """
+#         # docker run \
+#         # -v {input.input_dir}:"/input" \
+#         # -v "results/deepvariant":"/output" \
+#         # google/deepvariant:1.6.1 \
+#         # /opt/deepvariant/bin/run_deepvariant \
+#         # --model_type=WES \  
+#         # --ref={input.ref} \
+#         # --reads={input.bam} \
+#         # --output_vcf={output.vcf} \
+#         # --output_gvcf={output.gvcf} \
+#         # --num_shards=8 \
+#         # --intermediate_results_dir {input.temp_dir} \
+#         # --dry_run=false
+#         # """
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
