@@ -332,34 +332,34 @@ rule deepvariant:
     container:
         "docker://google/deepvariant:1.6.1"
     shell:
-        # """
-        # scc-singularity run -B /usr/lib/locale/:/usr/lib/locale/ \
-        # docker://google/deepvariant:1.6.1 \
-        # /opt/deepvariant/bin/run_deepvariant \
-        # --model_type=WES \
-        # --ref={input.ref} \
-        # --reads={input.bam} \
-        # # --regions "chr20:10,000,000-10,010,000" \
-        # --output_vcf={output.vcf} \
-        # --output_gvcf={output.gvcf} \
-        # --intermediate_results_dir {input.temp_dir} \
-        # --num_shards={threads}
-        # """
         """
-        docker run \
-        -v {input.input_dir}:"/input" \
-        -v "results/deepvariant":"/output" \
-        google/deepvariant:1.6.1 \
+        # scc-singularity run -B /usr/lib/locale/:/usr/lib/locale/ \
+        docker://google/deepvariant:1.6.1 \
         /opt/deepvariant/bin/run_deepvariant \
-        --model_type=WES \  
+        --model_type=WES \
         --ref={input.ref} \
         --reads={input.bam} \
+        # --regions "chr20:10,000,000-10,010,000" \
         --output_vcf={output.vcf} \
         --output_gvcf={output.gvcf} \
-        --num_shards=8 \
         --intermediate_results_dir {input.temp_dir} \
-        --dry_run=false
+        --num_shards={threads}
         """
+        # """
+        # docker run \
+        # -v {input.input_dir}:"/input" \
+        # -v "results/deepvariant":"/output" \
+        # google/deepvariant:1.6.1 \
+        # /opt/deepvariant/bin/run_deepvariant \
+        # --model_type=WES \  
+        # --ref={input.ref} \
+        # --reads={input.bam} \
+        # --output_vcf={output.vcf} \
+        # --output_gvcf={output.gvcf} \
+        # --num_shards=8 \
+        # --intermediate_results_dir {input.temp_dir} \
+        # --dry_run=false
+        # """
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
