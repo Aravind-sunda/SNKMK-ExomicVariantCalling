@@ -1,7 +1,9 @@
 # SNKMK-ExomicVariantCalling
 
 > This pipeline is still in development
-Contains the Snakemake pipeline for Whole Exome Sequencing based Variant Calling \n
+
+Contains the Snakemake pipeline for Whole Exome Sequencing based Variant Calling
+
 Performs Variant Calling with 
 1. GATK
 2. Deepvariant
