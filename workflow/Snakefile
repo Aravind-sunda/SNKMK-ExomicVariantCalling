@@ -28,16 +28,16 @@ rule all:
         # gvcf=expand("results/deepvariant/gvcfs/dv_{sample}.g.vcf.gz",sample=names)
 
 
-rule getreference:
-# Remember to add the other references in this file as well. such as known sites
-    output:
-        reference="reference/genome.fa",
-        reference_idx="reference/genome.fa.fai"
-    shell:
-        """
-        wget -P reference/ https://dl.dnanex.us/F/D/734xvkZG02bbF5vF1bZ93G03ZK1g6x64ffVYkyBk/h38flat.fasta-index.tar.gz 
-        tar -xvzf reference/h38flat.fasta-index.tar.gz
-        """
+# rule getreference:
+# # Remember to add the other references in this file as well. such as known sites
+#     output:
+#         reference="reference/genome.fa",
+#         reference_idx="reference/genome.fa.fai"
+#     shell:
+#         """
+#         wget -P reference/ https://dl.dnanex.us/F/D/734xvkZG02bbF5vF1bZ93G03ZK1g6x64ffVYkyBk/h38flat.fasta-index.tar.gz 
+#         tar -xvzf reference/h38flat.fasta-index.tar.gz
+#         """
 
 rule cram_to_bam:
     input:
@@ -80,7 +80,7 @@ rule bam_index:
 rule mark_duplicates:
     input:
         bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam",
-        temp_dir = directory("/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP"),
+        temp_dir = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP",
         bam_index="results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai"
     output:
     # dedup_metrics not used in the next file. Define in rule all?
