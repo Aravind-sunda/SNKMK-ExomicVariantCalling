@@ -60,19 +60,19 @@ rule cram_to_bam:
         samtools sort -@ {threads} -m {params.memory} -O BAM -o {output.bam_processed} -
         """
 
-# rule bam_index:
-#     input:
-#         bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam"
-#     output:
-#     # Important that it has to mention bam.bai. Otherwise, it will not be recognized as an index file.
-#     # Technically not used in the next rule. The tool however used this. Define in rule all?
-#         bam_index="results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai"
-#     conda:
-#         "envs/samtools.yaml"    
-#     shell:
-#         """
-#         samtools index {input.bam_processed} 
-#         """
+rule bam_index:
+    input:
+        bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam"
+    output:
+    # Important that it has to mention bam.bai. Otherwise, it will not be recognized as an index file.
+    # Technically not used in the next rule. The tool however used this. Define in rule all?
+        bam_index="results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai"
+    conda:
+        "envs/samtools.yaml"    
+    shell:
+        """
+        samtools index {input.bam_processed} 
+        """
 
 # rule mark_duplicates:
 #     input:
@@ -273,6 +273,27 @@ rule deepvariant_gvcf:
     wrapper:
         "v3.10.2/bio/deepvariant"
 
+# Adapted from : https://github.com/yiolino/snakemake-deepvariant/tree/master
+# rule call_variants:
+#     input:
+#         bam = "results/{sample}/{sample}.aligned_fixmates_sorted.bam",
+#         bai = "results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai"
+#         ref = "reference/genome.fa",
+#         idx = "reference/genome.fa.fai" 
+#     output:
+#         vcf="results/deepvariant/vcf/dv_{sample}.vcf.gz",
+#         gvcf="results/deepvariant/gvcfs/dv_{sample}.g.vcf.gz",
+#     params:
+#         model="wes",
+#         extra=""
+#     threads: 8
+#     log:
+#         "logs/deepvariant/{sample}/stdout.log"
+#     conda:
+#         "envs/deepvariant.yaml"
+#     script:
+#         "scripts/deepvariant.py"
+
 rule merge_vcfs:
     input:
         vcf=expand("results/deepvariant/vcf/dv_{sample}.vcf.gz", sample=names),
@@ -280,7 +301,6 @@ rule merge_vcfs:
     output:
         vcf_merged="results/deepvariant/vcf/dv_all_samples.vcf.gz",
         gvcf_merged="results/deepvariant/gvcfs/dv_all_samples.g.vcf.gz",
-
     conda:
         "envs/bcftools.yaml"
     shell:
