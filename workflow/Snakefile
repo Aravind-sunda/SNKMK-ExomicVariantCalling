@@ -36,29 +36,29 @@ rule all:
 #         tar -xvzf reference/h38flat.fasta-index.tar.gz
 #         """
 
-# rule cram_to_bam:
-#     input:
-#         cram="data/{sample}.aligned.cram",
-#         reference="reference/genome.fa"
-#     output:
-#         bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam"
-#     threads:8
-#     params:
-#         memory="8G"
-#     conda:
-#         "envs/samtools.yaml"
-#     shell:
-#     # -n sorts by name
-#     # -m sets memory    
-#     # Explanation: 
-#     #1. Sort the cram file by name
-#     #2. Fixmate the sorted cram file# (Expects the BAM to be sorted according to names and is only for paired end sequencing 
-#     #3. Sort the fixmated bam file by chromosome(GATK requires files to be sorted according to their genomic coordinates)
-#         """
-#         samtools sort -n -@ {threads} -m {params.memory} -O BAM {input.cram} | \
-#         samtools fixmate -m -O BAM - - | \
-#         samtools sort -@ {threads} -m {params.memory} -O BAM -o {output.bam_processed} -
-#         """
+rule cram_to_bam:
+    input:
+        cram="data/{sample}.aligned.cram",
+        reference="reference/genome.fa"
+    output:
+        bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam"
+    threads:8
+    params:
+        memory="8G"
+    conda:
+        "envs/samtools.yaml"
+    shell:
+    # -n sorts by name
+    # -m sets memory    
+    # Explanation: 
+    #1. Sort the cram file by name
+    #2. Fixmate the sorted cram file# (Expects the BAM to be sorted according to names and is only for paired end sequencing 
+    #3. Sort the fixmated bam file by chromosome(GATK requires files to be sorted according to their genomic coordinates)
+        """
+        samtools sort -n -@ {threads} -m {params.memory} -O BAM {input.cram} | \
+        samtools fixmate -m -O BAM - - | \
+        samtools sort -@ {threads} -m {params.memory} -O BAM -o {output.bam_processed} -
+        """
 
 # rule bam_index:
 #     input:
