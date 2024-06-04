@@ -320,49 +320,142 @@ rule vcf_filter:
         vcf_healthy_indel_filtered = "results/split_vcf/vcf_healthy_indel_filtered.vcf.gz"
     conda:
         "envs/gatk.yaml"
-    run:
-        inputs_snp = [input.vcf_superresilient_snp, input.vcf_diseased_snp, input.vcf_healthy_snp]
-        outputs_snp = [output.vcf_superresilient_snp_filtered, output.vcf_diseased_snp_filtered, output.vcf_healthy_snp_filtered]
+    # Make the following into a script that can be called by the snakemake pipeline
+    # run:
+    #     inputs_snp = [input.vcf_superresilient_snp, input.vcf_diseased_snp, input.vcf_healthy_snp]
+    #     outputs_snp = [output.vcf_superresilient_snp_filtered, output.vcf_diseased_snp_filtered, output.vcf_healthy_snp_filtered]
 
-        inputs_indel = [input.vcf_superresilient_indel, input.vcf_diseased_indel, input.vcf_healthy_indel]
-        outputs_indel = [output.vcf_superresilient_indel_filtered, output.vcf_diseased_indel_filtered, output.vcf_healthy_indel_filtered]
+    #     inputs_indel = [input.vcf_superresilient_indel, input.vcf_diseased_indel, input.vcf_healthy_indel]
+    #     outputs_indel = [output.vcf_superresilient_indel_filtered, output.vcf_diseased_indel_filtered, output.vcf_healthy_indel_filtered]
 
-        # Loop over SNP inputs and outputs
-        for vcf_in, vcf_out in zip(inputs_snp, outputs_snp):
-            shell(f"""
-                gatk VariantFiltration \
-                -R {input.reference} \
-                -V {vcf_in} \
-                -O {vcf_out} \
-                --set-filtered-genotype-to-no-call true \
-                -filter-name "QD_filter" -filter "QD < 2.0" \
-                -genotype-filter-expression "DP < 7" \
-                -genotype-filter-name "DP_filter" \
-                -genotype-filter-expression "GQ < 20" \
-                -genotype-filter-name "GQ_filter" \
-                -filter-name "FS_filter" -filter "FS > 60.0" \
-                -filter-name "MQ_filter" -filter "MQ < 40.0" \
-                -filter-name "SOR_filter" -filter "SOR > 4.0" \
-                -filter-name "MQRankSum_filter" -filter "MQRankSum < -12.5" \
-                -filter-name "ReadPosRankSum_filter" -filter "ReadPosRankSum < -8.0"
-            """)
+    #     # Loop over SNP inputs and outputs
+    #     for vcf_in, vcf_out in zip(inputs_snp, outputs_snp):
+    #         shell(f"""
+    #             gatk VariantFiltration \
+    #             -R {input.reference} \
+    #             -V {vcf_in} \
+    #             -O {vcf_out} \
+    #             --set-filtered-genotype-to-no-call true \
+    #             -filter-name "QD_filter" -filter "QD < 2.0" \
+    #             -genotype-filter-expression "DP < 7" \
+    #             -genotype-filter-name "DP_filter" \
+    #             -genotype-filter-expression "GQ < 20" \
+    #             -genotype-filter-name "GQ_filter" \
+    #             -filter-name "FS_filter" -filter "FS > 60.0" \
+    #             -filter-name "MQ_filter" -filter "MQ < 40.0" \
+    #             -filter-name "SOR_filter" -filter "SOR > 4.0" \
+    #             -filter-name "MQRankSum_filter" -filter "MQRankSum < -12.5" \
+    #             -filter-name "ReadPosRankSum_filter" -filter "ReadPosRankSum < -8.0"
+    #         """)
 
-        # Loop over INDEL inputs and outputs
-        for vcf_in, vcf_out in zip(inputs_indel, outputs_indel):
-            shell(f"""
-                gatk VariantFiltration \
-                -R {input.reference} \
-                -V {vcf_in} \
-                -O {vcf_out} \
-                --set-filtered-genotype-to-no-call true \
-                -filter-name "QD_filter" -filter "QD < 2.0" \
-                -genotype-filter-expression "DP < 10" \
-                -genotype-filter-name "DP_filter" \
-                -genotype-filter-expression "GQ < 20" \
-                -genotype-filter-name "GQ_filter" \
-                -filter-name "FS_filter" -filter "FS > 200.0" \
-                -filter-name "SOR_filter" -filter "SOR > 10.0"
-            """)
+    #     # Loop over INDEL inputs and outputs
+    #     for vcf_in, vcf_out in zip(inputs_indel, outputs_indel):
+    #         shell(f"""
+    #             gatk VariantFiltration \
+    #             -R {input.reference} \
+    #             -V {vcf_in} \
+    #             -O {vcf_out} \
+    #             --set-filtered-genotype-to-no-call true \
+    #             -filter-name "QD_filter" -filter "QD < 2.0" \
+    #             -genotype-filter-expression "DP < 10" \
+    #             -genotype-filter-name "DP_filter" \
+    #             -genotype-filter-expression "GQ < 20" \
+    #             -genotype-filter-name "GQ_filter" \
+    #             -filter-name "FS_filter" -filter "FS > 200.0" \
+    #             -filter-name "SOR_filter" -filter "SOR > 10.0"
+    #         """)
+    shell:
+        """
+        # SNPS
+        gatk VariantFiltration \
+        -R /restricted/projectnb/cjdgenomics/CJD-Regeneron-VariantCalling/Reference/genome.fa \
+        -V {input.vcf_superresilient_snp} \
+        -O {output.vcf_superresilient_snp_filtered} \
+        --set-filtered-genotype-to-no-call true \
+        -filter-name "QD_filter" -filter "QD < 2.0" \
+        -genotype-filter-expression "DP < 7" \
+        -genotype-filter-name "DP_filter" \
+        -genotype-filter-expression "GQ < 20" \
+        -genotype-filter-name "GQ_filter" \
+        -filter-name "FS_filter" -filter "FS > 60.0" \
+        -filter-name "MQ_filter" -filter "MQ < 40.0" \
+        -filter-name "SOR_filter" -filter "SOR > 4.0" \
+        -filter-name "MQRankSum_filter" -filter "MQRankSum < -12.5" \
+        -filter-name "ReadPosRankSum_filter" -filter "ReadPosRankSum < -8.0"
+
+        gatk VariantFiltration \
+        -R /restricted/projectnb/cjdgenomics/CJD-Regeneron-VariantCalling/Reference/genome.fa \
+        -V {input.vcf_diseased_snp} \
+        -O {output.vcf_diseased_snp_filtered} \
+        --set-filtered-genotype-to-no-call true \
+        -filter-name "QD_filter" -filter "QD < 2.0" \
+        -genotype-filter-expression "DP < 7" \
+        -genotype-filter-name "DP_filter" \
+        -genotype-filter-expression "GQ < 20" \
+        -genotype-filter-name "GQ_filter" \
+        -filter-name "FS_filter" -filter "FS > 60.0" \
+        -filter-name "MQ_filter" -filter "MQ < 40.0" \
+        -filter-name "SOR_filter" -filter "SOR > 4.0" \
+        -filter-name "MQRankSum_filter" -filter "MQRankSum < -12.5" \
+        -filter-name "ReadPosRankSum_filter" -filter "ReadPosRankSum < -8.0"
+
+        gatk VariantFiltration \
+        -R /restricted/projectnb/cjdgenomics/CJD-Regeneron-VariantCalling/Reference/genome.fa \
+        -V {input.vcf_healthy_snp} \
+        -O {output.vcf_healthy_snp_filtered} \
+        --set-filtered-genotype-to-no-call true \
+        -filter-name "QD_filter" -filter "QD < 2.0" \
+        -genotype-filter-expression "DP < 7" \
+        -genotype-filter-name "DP_filter" \
+        -genotype-filter-expression "GQ < 20" \
+        -genotype-filter-name "GQ_filter" \
+        -filter-name "FS_filter" -filter "FS > 60.0" \
+        -filter-name "MQ_filter" -filter "MQ < 40.0" \
+        -filter-name "SOR_filter" -filter "SOR > 4.0" \
+        -filter-name "MQRankSum_filter" -filter "MQRankSum < -12.5" \
+        -filter-name "ReadPosRankSum_filter" -filter "ReadPosRankSum < -8.0"
+
+        # INDELS
+        gatk VariantFiltration \
+        -R /restricted/projectnb/cjdgenomics/CJD-Regeneron-VariantCalling/Reference/genome.fa \
+        -V {input.vcf_superresilient_indel} \
+        -O {output.vcf_superresilient_indel_filtered} \
+        --set-filtered-genotype-to-no-call true \
+        -filter-name "QD_filter" -filter "QD < 2.0" \
+        -genotype-filter-expression "DP < 10" \
+        -genotype-filter-name "DP_filter" \
+        -genotype-filter-expression "GQ < 20" \
+        -genotype-filter-name "GQ_filter" \
+        -filter-name "FS_filter" -filter "FS > 200.0" \
+        -filter-name "SOR_filter" -filter "SOR > 10.0"
+
+        gatk VariantFiltration \
+        -R /restricted/projectnb/cjdgenomics/CJD-Regeneron-VariantCalling/Reference/genome.fa \
+        -V {input.vcf_diseased_indel} \
+        -O {output.vcf_diseased_indel_filtered} \
+        --set-filtered-genotype-to-no-call true \
+        -filter-name "QD_filter" -filter "QD < 2.0" \
+        -genotype-filter-expression "DP < 10" \
+        -genotype-filter-name "DP_filter" \
+        -genotype-filter-expression "GQ < 20" \
+        -genotype-filter-name "GQ_filter" \
+        -filter-name "FS_filter" -filter "FS > 200.0" \
+        -filter-name "SOR_filter" -filter "SOR > 10.0"
+
+        gatk VariantFiltration \
+        -R /restricted/projectnb/cjdgenomics/CJD-Regeneron-VariantCalling/Reference/genome.fa \
+        -V {input.vcf_healthy_indel} \
+        -O {output.vcf_healthy_indel_filtered} \
+        --set-filtered-genotype-to-no-call true \
+        -filter-name "QD_filter" -filter "QD < 2.0" \
+        -genotype-filter-expression "DP < 10" \
+        -genotype-filter-name "DP_filter" \
+        -genotype-filter-expression "GQ < 20" \
+        -genotype-filter-name "GQ_filter" \
+        -filter-name "FS_filter" -filter "FS > 200.0" \
+        -filter-name "SOR_filter" -filter "SOR > 10.0"
+        """
+
 
 rule merge_vcfs:
     input:
