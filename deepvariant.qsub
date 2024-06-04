@@ -8,7 +8,16 @@ set -e
 #$ -pe omp 8
 #$ -l mem_per_core=8G
 
+# This script will be run in /restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/data
+# It is to see if deepvariant works in scc and then it will be run on snakemake
+module load miniconda/23.11.0
+conda activate deepvariant
 
+
+conda config --add channels defaults && \
+conda config --add channels bioconda && \
+conda config --add channels conda-forge
+conda install deepvariant=1.4.0 
 
 PWD="/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430"
 BAM="results/BOSTON_CJD29_CJD29/BOSTON_CJD29_CJD29.aligned_fixmates_sorted.bam"
