@@ -71,11 +71,11 @@ rule mark_duplicates:
     input:
     # temp-dir has to be in input as it has to be created to be used in the shell script. If it is in params, it will not be created.
         bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam",
+        temp_dir = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP", 
         bam_index="results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai"
     output:
     # dedup_metrics not used in the next file. Define in rule all?
         bam_dedup="results/{sample}/{sample}.aligned_dedup.bam",
-        temp_dir = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP", 
         dedup_metrics="results/{sample}/{sample}.dedupmetrics.txt"
     params:    
         cores = 12    
@@ -96,9 +96,9 @@ rule mark_duplicates:
         gatk --java-options "-XX:ParallelGCThreads=2 -Xmx60G -Xms60G" MarkDuplicatesSpark -I {input.bam_processed} \
         -O {output.bam_dedup} \
         --metrics-file {output.dedup_metrics} \
-        --QUIET --tmp-dir {output.temp_dir} \
+        --QUIET --tmp-dir {input.temp_dir} \
         --conf 'spark.executor.cores={params.cores}' \
-        --conf 'spark.local.dir={output.temp_dir}' \
+        --conf 'spark.local.dir={input.temp_dir}' \
         --spark-master local[{params.cores}]
         """
 
