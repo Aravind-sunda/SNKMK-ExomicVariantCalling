@@ -525,7 +525,7 @@ rule deepvariant:
         vcf="results/deepvariant/{sample}/dv_{sample}.vcf.gz",
         gvcf="results/deepvariant/{sample}/dv_{sample}.g.vcf.gz"
     params:
-        work_dir = workflow.directory
+        work_dir = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
     threads:8
     # singularity:
     #     "docker://google/deepvariant:1.6.1"
