@@ -43,3 +43,12 @@ snakemake --forceall --rulegraph -F --directory "/restricted/projectnb/cjdgenomi
 snakemake -s workflow/Snakefile --sdm conda --cores 8 --jobs 22 --latency-wait 100 --rerun-triggers mtime \
 --executor cluster-generic --cluster-generic-submit-cmd "qsub -P project -pe omp {threads} -l mem_per_core=8G -cwd -j y -N varcallpipeline" \
 --directory "pwd"
+
+# Dry run of the pipeline
+snakemake -s workflow/Snakefile --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/" -np
+
+# Unlocking the directory when a run fails
+snakemake -s workflow/Snakefile --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/" --unlock
+
+# Rerun incomplete jobs
+snakemake -s workflow/Snakefile --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/" --rerun-incomplete
