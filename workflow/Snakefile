@@ -21,7 +21,7 @@ rule all:
         vcf_stats=expand("results/{sample}/{sample}.stats", sample = names),
         SR_unique_vcf="results/intersect_vcf/0000.vcf.gz",
         D_unique_vcf ="results/intersect_vcf/0001.vcf.gz",
-        intersect_vcf="results/intersect_vcf/0002.vcf.gz"
+        intersect_vcf="results/intersect_vcf/0002.vcf.gz",
         vcf=expand("results/deepvariant/{sample}/dv_{sample}.vcf.gz",sample = "BOSTON_CJD29_CJD29"),
         gvcf=expand("results/deepvariant/{sample}/dv_{sample}.g.vcf.gz",sample = "BOSTON_CJD29_CJD29")
 
