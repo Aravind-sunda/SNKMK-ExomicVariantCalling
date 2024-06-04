@@ -519,13 +519,13 @@ rule cram_to_bam:
 rule deepvariant:
     input:
         bam = "results/{sample}/{sample}.aligned_fixmates_sorted.bam",
-        ref = "reference/genome.fa",
-        temp_dir = "results/deepvariant/{sample}/intermediate_results_dir"
+        ref = "reference/genome.fa"        
     output:
         vcf="results/deepvariant/{sample}/dv_{sample}.vcf.gz",
         gvcf="results/deepvariant/{sample}/dv_{sample}.g.vcf.gz"
     params:
-        work_dir = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
+        work_dir = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/",
+        temp_dir = "results/deepvariant/{sample}/intermediate_results_dir"
     threads:8
     # singularity:
     #     "docker://google/deepvariant:1.6.1"
@@ -544,7 +544,7 @@ rule deepvariant:
         --reads={input.bam} \
         --output_vcf={output.vcf} \
         --output_gvcf={output.gvcf} \
-        --intermediate_results_dir {params.work_dir}/results/deepvariant/{sample}/intermediate_results_dir
+        --intermediate_results_dir {params.work_dir}/{params.temp_dir}
         """
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
