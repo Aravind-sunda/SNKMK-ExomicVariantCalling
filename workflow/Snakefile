@@ -19,11 +19,11 @@ rule all:
     input:
         bam_index = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai", sample = names),
         vcf_stats=expand("results/{sample}/{sample}.stats", sample = names),
-        annotated_vcf="results/all_samples_genotyped_annotated.vcf.gz",
-        annotated_stats="results/all_samples_genotyped_annotated.vcf.gz.html",
-        SR_unique_vcf="results/intersect_vcf/0000.vcf",
-        D_unique_vcf ="results/intersect_vcf/0001.vcf",
-        intersect_vcf="results/intersect_vcf/0002.vcf",
+        # annotated_vcf="results/all_samples_genotyped_annotated.vcf.gz",
+        # annotated_stats="results/all_samples_genotyped_annotated.vcf.gz.html",
+        SR_unique_vcf="results/intersect_vcf/0000.vcf.gz",
+        D_unique_vcf ="results/intersect_vcf/0001.vcf.gz",
+        intersect_vcf="results/intersect_vcf/0002.vcf.gz"
         ## Deepvariant variables
         # vcf_merged="results/deepvariant/vcf/dv_all_samples.vcf.gz",
         # gvcf_merged="results/deepvariant/gvcfs/dv_all_samples.g.vcf.gz",
