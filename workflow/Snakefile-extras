@@ -120,4 +120,5 @@ rule indexing:
         "envs/samtools.yaml"
     shell:
         "samtools faidx {input.ref}"
-        
+
+
