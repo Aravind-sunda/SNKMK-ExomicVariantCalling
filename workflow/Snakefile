@@ -86,7 +86,7 @@ rule mark_duplicates:
     # dedup_metrics not used in the next file. Define in rule all?
         bam_dedup="results/{sample}/{sample}.aligned_dedup.bam",
         dedup_metrics="results/{sample}/{sample}.dedupmetrics.txt"
-    threads:8
+    threads:16
     conda:
         "envs/gatk.yaml"
     shell:
@@ -94,19 +94,17 @@ rule mark_duplicates:
     # Adding the cores to 8 to ensure that not all cores are used and the reaper does not terminate the process.
     # Removing the cores and adding the spark master to local[8] to ensure that the process is run on 8 cores.
     # --spark-master local[8]
+    # BOSTON_CJD14_CJD14.aligned_dedup.bam.parts add rm -rf
+    # add rm -rf dedup_metrics
         """
-        gatk --java-options "-XX:ParallelGCThreads=1" MarkDuplicatesSpark -I {input.bam_processed} \
+        gatk --java-options "-XX:ParallelGCThreads=2 --Xmx60G --Xms60G" MarkDuplicatesSpark -I {input.bam_processed} \
         -O {output.bam_dedup} \
         --metrics-file {output.dedup_metrics} \
         --QUIET --tmp-dir {input.temp_dir} \
-        --conf 'spark.executor.cores=6' \
-        # --conf 'spark.executor.memory=8g' \
-        # --conf 'spark.driver.memory=4g' \
-        # --conf 'spark.driver.cores=1' \
-        # --conf 'spark.task.cpus=1' \
+        --conf 'spark.executor.cores=12' \
         --conf 'spark.dynamicAllocation.enabled=false' \
         --conf 'spark.local.dir=/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP' \
-        --spark-master local[6]
+        --spark-master local[12]
         """
 
 rule base_recalibration:

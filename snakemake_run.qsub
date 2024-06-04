@@ -18,6 +18,9 @@ snakemake -s workflow/Snakefile --sdm conda --cores 8 --jobs 30 --latency-wait 1
 --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
 
 
+snakemake -s workflow/Snakefile --sdm conda --cores 8 --jobs 22 --latency-wait 100 --executor cluster-generic --cluster-generic-submit-cmd "qsub -P cjdgenomics -pe omp {threads} -l mem_per_core=8G -cwd -j y -N varcallpipeline" --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
+
+
 
 snakemake -s workflow/Snakefile --unlock --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
 
