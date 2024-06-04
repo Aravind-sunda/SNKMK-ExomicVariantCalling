@@ -95,7 +95,7 @@ rule mark_duplicates:
     # Removing the cores and adding the spark master to local[8] to ensure that the process is run on 8 cores.
     # --spark-master local[8]
         """
-        gatk --java-options "-Xmx8g -Xms8g -XX:ParallelGCThreads=1" MarkDuplicatesSpark -I {input.bam_processed} \
+        gatk --java-options "-XX:ParallelGCThreads=1" MarkDuplicatesSpark -I {input.bam_processed} \
         -O {output.bam_dedup} \
         --metrics-file {output.dedup_metrics} \
         --QUIET --tmp-dir {input.temp_dir} \
