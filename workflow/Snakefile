@@ -533,7 +533,7 @@ rule deepvariant:
         """
         cp /restricted/projectnb/cjdgenomics/Applications/Deepvariant/deepvariant_container.sif {params.work_dir}/results/deepvariant
         WorkingDIR="{params.work_dir}/results/deepvariant"
-        cd ${WorkingDIR}
+        cd ${{WorkingDIR}} # Remember double curly braces
         export TMPDIR="$PWD/tmp_dir"
         mkdir "$PWD/tmp_dir"
 
