@@ -97,7 +97,7 @@ rule mark_duplicates:
     # BOSTON_CJD14_CJD14.aligned_dedup.bam.parts add rm -rf
     # add rm -rf dedup_metrics
         """
-        gatk --java-options "-XX:ParallelGCThreads=2 --Xmx60G --Xms60G" MarkDuplicatesSpark -I {input.bam_processed} \
+        gatk --java-options "-XX:ParallelGCThreads=2 -Xmx60G -Xms60G" MarkDuplicatesSpark -I {input.bam_processed} \
         -O {output.bam_dedup} \
         --metrics-file {output.dedup_metrics} \
         --QUIET --tmp-dir {input.temp_dir} \
