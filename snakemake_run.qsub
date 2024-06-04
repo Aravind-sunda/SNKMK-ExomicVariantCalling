@@ -29,3 +29,6 @@ snakemake -s workflow/Snakefile --cores 8 --jobs 22 --directory "/restricted/pro
 
 # This it to check the dry run of the pipeline
 # snakemake -s workflow/Snakefile -np -d "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
+
+# Creating the rulegraph
+snakemake --forceall --rulegraph -F --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"| dot -Tpng > images/rulegraph_without_ref.png
