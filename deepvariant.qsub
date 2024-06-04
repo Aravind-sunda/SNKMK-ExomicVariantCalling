@@ -74,3 +74,42 @@ singularity exec deepvariant_container.sif /opt/deepvariant/bin/run_deepvariant
 # Pass --helpshort or --helpfull to see help on flags.
 singularity exec deepvariant_container.sif /opt/deepvariant/bin/run_deepvariant --helpfull
 #Prints the help message
+
+
+
+#------------------------------------------------------------------------------------------
+# Downloading the test data
+INPUT_DIR="${PWD}/quickstart-testdata"
+DATA_HTTP_DIR="https://storage.googleapis.com/deepvariant/quickstart-testdata"
+
+mkdir -p ${INPUT_DIR}
+wget -P ${INPUT_DIR} "${DATA_HTTP_DIR}"/NA12878_S1.chr20.10_10p1mb.bam
+wget -P ${INPUT_DIR} "${DATA_HTTP_DIR}"/NA12878_S1.chr20.10_10p1mb.bam.bai
+wget -P ${INPUT_DIR} "${DATA_HTTP_DIR}"/test_nist.b37_chr20_100kbp_at_10mb.bed
+wget -P ${INPUT_DIR} "${DATA_HTTP_DIR}"/test_nist.b37_chr20_100kbp_at_10mb.vcf.gz
+wget -P ${INPUT_DIR} "${DATA_HTTP_DIR}"/test_nist.b37_chr20_100kbp_at_10mb.vcf.gz.tbi
+wget -P ${INPUT_DIR} "${DATA_HTTP_DIR}"/ucsc.hg19.chr20.unittest.fasta
+wget -P ${INPUT_DIR} "${DATA_HTTP_DIR}"/ucsc.hg19.chr20.unittest.fasta.fai
+wget -P ${INPUT_DIR} "${DATA_HTTP_DIR}"/ucsc.hg19.chr20.unittest.fasta.gz
+wget -P ${INPUT_DIR} "${DATA_HTTP_DIR}"/ucsc.hg19.chr20.unittest.fasta.gz.fai
+wget -P ${INPUT_DIR} "${DATA_HTTP_DIR}"/ucsc.hg19.chr20.unittest.fasta.gz.gzi
+
+OUTPUT_DIR="${PWD}/quickstart-output"
+mkdir -p "${OUTPUT_DIR}"
+#------------------------------------------------------------------------------------------
+TMPDIR=/scratch
+
+WorkingDIR="/restricted/projectnb/cjdgenomics/Applications/Deepvariant"
+cd ${WorkingDIR}
+export TMPDIR="$PWD/tmp_dir"
+mkdir "$PWD/tmp_dir"
+
+singularity exec deepvariant_container.sif /opt/deepvariant/bin/run_deepvariant \
+--model_type=WGS \
+--ref=${WorkingDIR}/quickstart-testdata/ucsc.hg19.chr20.unittest.fasta \
+--reads=${WorkingDIR}/quickstart-testdata/NA12878_S1.chr20.10_10p1mb.bam \
+--regions "chr20:10,000,000-10,010,000" \
+--output_vcf=${WorkingDIR}/quickstart-output/output.vcf.gz \
+--output_gvcf=${WorkingDIR}/quickstart-output/output.g.vcf.gz \
+--intermediate_results_dir ${WorkingDIR}/quickstart-output/intermediate_results_dir
+

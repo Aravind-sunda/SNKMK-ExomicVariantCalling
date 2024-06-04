@@ -13,23 +13,17 @@ with open("data/All_Samples.txt") as f:
     names = [line.strip() for line in f] # Remember to create the All_Samples.txt file in the data directory
 
 # --- Pipeline Rules --- #
-localrules: all,getreference,bam_index,variant_stats,cohort_sample_map
+localrules: all,getreference,bam_index,variant_stats,cohort_sample_map,deepvariant
 
 rule all:
     input:
         bam_index = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai", sample = names),
         vcf_stats=expand("results/{sample}/{sample}.stats", sample = names),
-        # annotated_vcf="results/all_samples_genotyped_annotated.vcf.gz",
-        # annotated_stats="results/all_samples_genotyped_annotated.vcf.gz.html",
         SR_unique_vcf="results/intersect_vcf/0000.vcf.gz",
         D_unique_vcf ="results/intersect_vcf/0001.vcf.gz",
-        intersect_vcf="results/intersect_vcf/0002.vcf.gz"
-        ## Deepvariant variables
-        # vcf_merged="results/deepvariant/vcf/dv_all_samples.vcf.gz",
-        # gvcf_merged="results/deepvariant/gvcfs/dv_all_samples.g.vcf.gz",
-        # vcf=expand("results/deepvariant/vcf/dv_{sample}.vcf.gz",sample=names),
-        # gvcf=expand("results/deepvariant/gvcfs/dv_{sample}.g.vcf.gz",sample=names)
-
+        intersect_vcf="results/intersect_vcf/0002.vcf.gz",
+        vcf=expand("results/deepvariant/{sample}/dv_{sample}.vcf.gz",sample = "BOSTON_CJD29_CJD29"),
+        gvcf=expand("results/deepvariant/{sample}/dv_{sample}.g.vcf.gz",sample = "BOSTON_CJD29_CJD29")
 
 # rule getreference:
 # # Remember to add the other references in this file as well. such as known sites
@@ -522,8 +516,38 @@ rule intersect_vcf:
 #         --data-dir /path/to/data_dir
 #         """
 
+rule deepvariant:
+    input:
+        bam = "results/{sample}/{sample}.aligned_fixmates_sorted.bam",
+        ref = "reference/genome.fa",
+        temp_dir = "results/deepvariant/{sample}/intermediate_results_dir", 
+    output:
+        vcf="results/deepvariant/{sample}/dv_{sample}.vcf.gz",
+        gvcf="results/deepvariant/{sample}/dv_{sample}.g.vcf.gz"
+    params:
+        work_dir = config["directory"]
+    threads:8
+    # singularity:
+    #     "docker://google/deepvariant:1.6.1"
+    shell:
+    """
+    cp /restricted/projectnb/cjdgenomics/Applications/Deepvariant {params.work_dir}/results/deepvariant
+    WorkingDIR="{params.work_dir}/results/deepvariant"
+    cd ${WorkingDIR}
+    export TMPDIR="$PWD/tmp_dir"
+    mkdir "$PWD/tmp_dir"
+
+    cd {params.work_dir}
+    singularity exec {params.work_dir}/results/deepvariant/deepvariant_container.sif /opt/deepvariant/bin/run_deepvariant \
+    --model_type=WGS \
+    --ref={input.ref} \
+    --reads={input.bam} \
+    --output_vcf={output.vcf} \
+    --output_gvcf={output.gvcf} \
+    --intermediate_results_dir {params.work_dir}/results/deepvariant/{sample}/intermediate_results_dir
+    """
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# --- Deepvariant pipeline --- #
+# --- Deepvariant pipeline TRIAL--- #
 # rule deepvariant_gvcf:
 #     input:
 #         bam="results/{sample}/{sample}.aligned_fixmates_sorted.bam",

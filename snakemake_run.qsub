@@ -32,3 +32,8 @@ snakemake -s workflow/Snakefile --cores 8 --jobs 22 --directory "/restricted/pro
 
 # Creating the rulegraph
 snakemake --forceall --rulegraph -F --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"| dot -Tpng > images/rulegraph_without_ref.png
+
+
+snakemake -s workflow/Snakefile --sdm conda --cores 8 --jobs 22 --latency-wait 100 --rerun-triggers mtime \
+--executor cluster-generic --cluster-generic-submit-cmd "qsub -P project -pe omp {threads} -l mem_per_core=8G -cwd -j y -N varcallpipeline" \
+--directory "pwd"
