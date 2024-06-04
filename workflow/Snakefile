@@ -95,18 +95,18 @@ rule mark_duplicates:
     # Removing the cores and adding the spark master to local[8] to ensure that the process is run on 8 cores.
     # --spark-master local[8]
         """
-        gatk MarkDuplicatesSpark -I {input.bam_processed} \
+        gatk --java-options "-Xmx8g -Xms8g -XX:ParallelGCThreads=1" MarkDuplicatesSpark -I {input.bam_processed} \
         -O {output.bam_dedup} \
         --metrics-file {output.dedup_metrics} \
         --QUIET --tmp-dir {input.temp_dir} \
         --conf 'spark.executor.cores=6' \
-        --conf 'spark.executor.memory=8g' \
-        --conf 'spark.driver.memory=4g' \
-        --conf 'spark.driver.cores=1' \
-        --conf 'spark.task.cpus=1' \
+        # --conf 'spark.executor.memory=8g' \
+        # --conf 'spark.driver.memory=4g' \
+        # --conf 'spark.driver.cores=1' \
+        # --conf 'spark.task.cpus=1' \
         --conf 'spark.dynamicAllocation.enabled=false' \
         --conf 'spark.local.dir=/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP' \
-        --spark-master local[8]
+        --spark-master local[6]
         """
 
 rule base_recalibration:
