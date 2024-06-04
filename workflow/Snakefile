@@ -13,7 +13,7 @@ with open("data/All_Samples.txt") as f:
     names = [line.strip() for line in f] # Remember to create the All_Samples.txt file in the data directory
 
 # --- Pipeline Rules --- #
-localrules: all,getreference,bam_index,variant_stats,cohort_sample_map,deepvariant
+localrules: all,bam_index,variant_stats,cohort_sample_map,vcf_split_samples,deepvariant
 
 rule all:
     input:
@@ -25,17 +25,6 @@ rule all:
         # vcf=expand("results/deepvariant/{sample}/dv_{sample}.vcf.gz",sample = "BOSTON_CJD29_CJD29"),
         # gvcf=expand("results/deepvariant/{sample}/dv_{sample}.g.vcf.gz",sample = "BOSTON_CJD29_CJD29")
 
-# rule getreference:
-# # Remember to add the other references in this file as well. such as known sites
-#     output:
-#         reference="reference/genome.fa",
-#         reference_idx="reference/genome.fa.fai"
-#     shell:
-#         """
-#         wget -P reference/ https://dl.dnanex.us/F/D/734xvkZG02bbF5vF1bZ93G03ZK1g6x64ffVYkyBk/h38flat.fasta-index.tar.gz 
-#         tar -xvzf reference/h38flat.fasta-index.tar.gz
-#         """
-
 rule cram_to_bam:
     input:
         cram="data/{sample}.aligned.cram",
@@ -43,11 +32,11 @@ rule cram_to_bam:
     output:
         bam="results/{sample}/{sample}.bam",
         bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam"
-    threads:8
     params:
-        memory="8G"
+        memory="8G"    
     conda:
         "envs/samtools.yaml"
+    threads:8    
     shell:
     # -n sorts by name
     # -m sets memory    
@@ -80,12 +69,14 @@ rule bam_index:
 rule mark_duplicates:
     input:
         bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam",
-        temp_dir = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP",
         bam_index="results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai"
     output:
     # dedup_metrics not used in the next file. Define in rule all?
         bam_dedup="results/{sample}/{sample}.aligned_dedup.bam",
         dedup_metrics="results/{sample}/{sample}.dedupmetrics.txt"
+    params:    
+        temp_dir = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP",
+        cores = 12    
     threads:16
     conda:
         "envs/gatk.yaml"
@@ -103,10 +94,10 @@ rule mark_duplicates:
         gatk --java-options "-XX:ParallelGCThreads=2 -Xmx60G -Xms60G" MarkDuplicatesSpark -I {input.bam_processed} \
         -O {output.bam_dedup} \
         --metrics-file {output.dedup_metrics} \
-        --QUIET --tmp-dir {input.temp_dir} \
-        --conf 'spark.executor.cores=12' \
-        --conf 'spark.local.dir=/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP' \
-        --spark-master local[12]
+        --QUIET --tmp-dir {params.temp_dir} \
+        --conf 'spark.executor.cores={params.cores}' \
+        --conf 'spark.local.dir={params.temp_dir}' \
+        --spark-master local[{params.cores}]
         """
 
 rule base_recalibration:
@@ -201,7 +192,7 @@ rule genomic_db_import:
         padding=50
     conda:
         "envs/gatk.yaml"
-    threads:8        
+    threads:16        
     shell:
     # Note: have to create a sample map file before hand. It is one of the necessary inputs.
     # Have to remove the vcfdb directory before running the command.
@@ -224,10 +215,9 @@ rule genotype_gvcfs:
         db="VCF_DB"
     output:
         genotyped_vcf="results/all_samples_genotyped.vcf.gz"
-    # params:
     conda:
         "envs/gatk.yaml"
-    threads:8
+    threads:16
     shell:
     # remember to check the input db path and make sure that it works
     # gendb:// is a prefix that is used to indicate that the input is a GenomicsDB workspace. It has to have 3 (///) slashes if you are not doing a variable.
@@ -289,6 +279,7 @@ rule vcf_split_snp_indel:
         vcf_healthy_indel = "results/split_vcf/vcf_healthy_indel.vcf.gz"
     conda:
         "envs/gatk.yaml"
+    threads:8
     shell:
         """
         gatk SelectVariants -V {input.vcf_superresilient} -select-type SNP -O {output.vcf_superresilient_snp}
@@ -317,6 +308,7 @@ rule vcf_filter:
         vcf_healthy_indel_filtered = "results/split_vcf/vcf_healthy_indel_filtered.vcf.gz"
     conda:
         "envs/gatk.yaml"
+    threads:8
     # Make the following into a script that can be called by the snakemake pipeline
     # run:
     #     inputs_snp = [input.vcf_superresilient_snp, input.vcf_diseased_snp, input.vcf_healthy_snp]
@@ -501,23 +493,6 @@ rule intersect_vcf:
         """
         bcftools isec -p results/intersect_vcf -Oz {input.vcf_superresilient_merged} {input.vcf_diseased_merged}
         """
-# rule exomiser:
-#     input:
-#         SR_unique_vcf="results/intersect_vcf/0000.vcf",
-#         D_unique_vcf="results/intersect_vcf/0001.vcf",
-#         intersect_vcf="results/intersect_vcf/0002.vcf"
-#     output:
-#     conda:
-#         "envs/exomiser.yaml"
-#     shell:
-#         """
-#         java -Xms2g -Xmx4g -jar exomiser-cli-12.1.0.jar \
-#         --analysis exome \
-#         --ped /path/to/pedigree.ped \
-#         --in /path/to/input.vcf \
-#         --out /path/to/output.vcf \
-#         --data-dir /path/to/data_dir
-#         """
 
 # rule deepvariant:
 #     input:
