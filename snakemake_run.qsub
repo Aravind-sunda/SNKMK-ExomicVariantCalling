@@ -18,40 +18,44 @@ snakemake -s workflow/Snakefile --sdm conda --cores 8 --jobs 30 --latency-wait 1
 --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
 
 
-snakemake -s workflow/Snakefile --sdm conda --cores 8 --jobs 22 --latency-wait 100 --executor cluster-generic --cluster-generic-submit-cmd "qsub -P cjdgenomics -pe omp {threads} -l mem_per_core=8G -cwd -j y -N varcallpipeline" --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
+# snakemake -s workflow/Snakefile --sdm conda --cores 8 --jobs 22 --latency-wait 100 --executor cluster-generic --cluster-generic-submit-cmd "qsub -P cjdgenomics -pe omp {threads} -l mem_per_core=8G -cwd -j y -N varcallpipeline" --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
 
 
 
-snakemake -s workflow/Snakefile --unlock --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
+# snakemake -s workflow/Snakefile --unlock --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
 
 
-# The following code will run all the other files even if the script is updated
-# This code can still be used to rerun rules if the input files are updated or output files are deleted.
-snakemake -s workflow/Snakefile --sdm conda --cores 8 --jobs 22 --latency-wait 100 \
---executor cluster-generic --cluster-generic-submit-cmd "qsub -P cjdgenomics -pe omp {threads} -l mem_per_core=8G -cwd -j y -N varcallpipeline" \
---directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
+# # The following code will run all the other files even if the script is updated
+# # This code can still be used to rerun rules if the input files are updated or output files are deleted.
+# snakemake -s workflow/Snakefile --sdm conda --cores 8 --jobs 22 --latency-wait 100 \
+# --executor cluster-generic --cluster-generic-submit-cmd "qsub -P cjdgenomics -pe omp {threads} -l mem_per_core=8G -cwd -j y -N varcallpipeline" \
+# --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
 
-# The following code will be used to run the deepvariant code in the pipeline
-snakemake -s workflow/Snakefile --cores 8 --jobs 22 --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/" \
---use-singularity --singularity-args "-B /usr/lib/locale/:/usr/lib/locale/"
-# --singularity-args "--bind /restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/:/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
+# # The following code will be used to run the deepvariant code in the pipeline
+# snakemake -s workflow/Snakefile --cores 8 --jobs 22 --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/" \
+# --use-singularity --singularity-args "-B /usr/lib/locale/:/usr/lib/locale/"
+# # --singularity-args "--bind /restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/:/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
 
-# This it to check the dry run of the pipeline
-# snakemake -s workflow/Snakefile -np -d "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
+# # This it to check the dry run of the pipeline
+# # snakemake -s workflow/Snakefile -np -d "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
 
-# Creating the rulegraph
-snakemake --forceall --rulegraph -F --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"| dot -Tpng > images/rulegraph_without_ref.png
+# # Creating the rulegraph
+# snakemake --forceall --rulegraph -F --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"| dot -Tpng > images/rulegraph_without_ref.png
 
 
-snakemake -s workflow/Snakefile --sdm conda --cores 8 --jobs 22 --latency-wait 100 --rerun-triggers mtime \
---executor cluster-generic --cluster-generic-submit-cmd "qsub -P project -pe omp {threads} -l mem_per_core=8G -cwd -j y -N varcallpipeline" \
---directory "pwd"
+# snakemake -s workflow/Snakefile --sdm conda --cores 8 --jobs 22 --latency-wait 100 --rerun-triggers mtime \
+# --executor cluster-generic --cluster-generic-submit-cmd "qsub -P project -pe omp {threads} -l mem_per_core=8G -cwd -j y -N varcallpipeline" \
+# --directory "pwd"
 
-# Dry run of the pipeline
-snakemake -s workflow/Snakefile --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/" -np
+# # Dry run of the pipeline
+# snakemake -s workflow/Snakefile --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/" -np
 
-# Unlocking the directory when a run fails
-snakemake -s workflow/Snakefile --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/" --unlock
+# # Unlocking the directory when a run fails
+# snakemake -s workflow/Snakefile --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/" --unlock
 
-# Rerun incomplete jobs
-snakemake -s workflow/Snakefile --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/" --rerun-incomplete
+# # Rerun incomplete jobs
+# snakemake -s workflow/Snakefile --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/" --rerun-incomplete
+
+
+# snakemake --forceall --dag --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"| dot -Tpdf > dag.pdf
+# snakemake  --forceall --rulegraph --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"| dot -Tpng > rulegraph.png
