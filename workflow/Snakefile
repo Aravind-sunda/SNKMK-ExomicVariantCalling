@@ -102,7 +102,6 @@ rule mark_duplicates:
         --metrics-file {output.dedup_metrics} \
         --QUIET --tmp-dir {input.temp_dir} \
         --conf 'spark.executor.cores=12' \
-        --conf 'spark.dynamicAllocation.enabled=false' \
         --conf 'spark.local.dir=/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP' \
         --spark-master local[12]
         """
