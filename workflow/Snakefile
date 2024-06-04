@@ -520,7 +520,7 @@ rule deepvariant:
     input:
         bam = "results/{sample}/{sample}.aligned_fixmates_sorted.bam",
         ref = "reference/genome.fa",
-        temp_dir = "results/deepvariant/{sample}/intermediate_results_dir", 
+        temp_dir = "results/deepvariant/{sample}/intermediate_results_dir"
     output:
         vcf="results/deepvariant/{sample}/dv_{sample}.vcf.gz",
         gvcf="results/deepvariant/{sample}/dv_{sample}.g.vcf.gz"
@@ -530,21 +530,21 @@ rule deepvariant:
     # singularity:
     #     "docker://google/deepvariant:1.6.1"
     shell:
-    """
-    cp /restricted/projectnb/cjdgenomics/Applications/Deepvariant/deepvariant_container.sif {params.work_dir}/results/deepvariant
-    WorkingDIR="{params.work_dir}/results/deepvariant"
-    cd ${WorkingDIR}
-    export TMPDIR="$PWD/tmp_dir"
-    mkdir "$PWD/tmp_dir"
+        """
+        cp /restricted/projectnb/cjdgenomics/Applications/Deepvariant/deepvariant_container.sif {params.work_dir}/results/deepvariant
+        WorkingDIR="{params.work_dir}/results/deepvariant"
+        cd ${WorkingDIR}
+        export TMPDIR="$PWD/tmp_dir"
+        mkdir "$PWD/tmp_dir"
 
-    cd {params.work_dir}
-    singularity exec {params.work_dir}/results/deepvariant/deepvariant_container.sif /opt/deepvariant/bin/run_deepvariant \
-    --model_type=WGS \
-    --ref={input.ref} \
-    --reads={input.bam} \
-    --output_vcf={output.vcf} \
-    --output_gvcf={output.gvcf} \
-    --intermediate_results_dir {params.work_dir}/results/deepvariant/{sample}/intermediate_results_dir
-    """
+        cd {params.work_dir}
+        singularity exec {params.work_dir}/results/deepvariant/deepvariant_container.sif /opt/deepvariant/bin/run_deepvariant \
+        --model_type=WGS \
+        --ref={input.ref} \
+        --reads={input.bam} \
+        --output_vcf={output.vcf} \
+        --output_gvcf={output.gvcf} \
+        --intermediate_results_dir {params.work_dir}/results/deepvariant/{sample}/intermediate_results_dir
+        """
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
