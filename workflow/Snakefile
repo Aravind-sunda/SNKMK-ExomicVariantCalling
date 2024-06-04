@@ -41,6 +41,7 @@ rule cram_to_bam:
         cram="data/{sample}.aligned.cram",
         reference="reference/genome.fa"
     output:
+        bam="results/{sample}/{sample}.bam",
         bam_processed="results/{sample}/{sample}.aligned_fixmates_sorted.bam"
     threads:8
     params:
@@ -55,7 +56,9 @@ rule cram_to_bam:
     #2. Fixmate the sorted cram file# (Expects the BAM to be sorted according to names and is only for paired end sequencing 
     #3. Sort the fixmated bam file by chromosome(GATK requires files to be sorted according to their genomic coordinates)
         """
-        samtools sort -n -@ {threads} -m {params.memory} -O BAM {input.cram} | \
+        samtools view -@ {threads} -T {input.reference} -b -h -o {output.bam} {input.cram}
+        
+        samtools sort -n -@ {threads} -m {params.memory} -O BAM {output.bam} | \
         samtools fixmate -m -O BAM - - | \
         samtools sort -@ {threads} -m {params.memory} -O BAM -o {output.bam_processed} -
         """
