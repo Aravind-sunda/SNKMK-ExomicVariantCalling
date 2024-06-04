@@ -18,6 +18,7 @@ localrules: all,bam_index,variant_stats,cohort_sample_map,vcf_split_samples
 
 rule all:
     input:
+        temp_dir = "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/OUTPUTS-TEMP"
         bam_index = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai", sample = names),
         vcf_stats=expand("results/{sample}/{sample}.stats", sample = names),
         SR_unique_vcf="results/intersect_vcf/0000.vcf.gz",
