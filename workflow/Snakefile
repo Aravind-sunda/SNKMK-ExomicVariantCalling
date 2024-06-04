@@ -22,8 +22,8 @@ rule all:
         SR_unique_vcf="results/intersect_vcf/0000.vcf.gz",
         D_unique_vcf ="results/intersect_vcf/0001.vcf.gz",
         intersect_vcf="results/intersect_vcf/0002.vcf.gz",
-        vcf=expand("results/deepvariant/{sample}/dv_{sample}.vcf.gz",sample = "BOSTON_CJD29_CJD29"),
-        gvcf=expand("results/deepvariant/{sample}/dv_{sample}.g.vcf.gz",sample = "BOSTON_CJD29_CJD29")
+        # vcf=expand("results/deepvariant/{sample}/dv_{sample}.vcf.gz",sample = "BOSTON_CJD29_CJD29"),
+        # gvcf=expand("results/deepvariant/{sample}/dv_{sample}.g.vcf.gz",sample = "BOSTON_CJD29_CJD29")
 
 # rule getreference:
 # # Remember to add the other references in this file as well. such as known sites
