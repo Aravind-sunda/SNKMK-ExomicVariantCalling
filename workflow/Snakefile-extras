@@ -113,10 +113,11 @@ rule all:
 # Define the rule for indexing the FASTA file
 rule indexing:
     input:
-        "data/sequence.fasta"
+        ref = "data/sequence.fasta"
     output:
         "data/sequence.fasta.fai"
     conda:
         "envs/samtools.yaml"
     shell:
-        "samtools faidx {input}"
+        "samtools faidx {input.ref}"
+        
