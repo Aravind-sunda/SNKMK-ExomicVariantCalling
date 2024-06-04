@@ -403,14 +403,14 @@ rule intersect_vcf:
         vcf_healthy_merged = "results/filtered_vcf/vcf_healthy_merged.vcf.gz"
     output:
         intersect_vcf = directory("results/intersect_vcf"),
-        SR_unique_vcf="results/intersect_vcf/0000.vcf",
-        D_unique_vcf ="results/intersect_vcf/0001.vcf",
-        intersect_vcf="results/intersect_vcf/0002.vcf",
+        SR_unique_vcf="results/intersect_vcf/0000.vcf.gz",
+        D_unique_vcf ="results/intersect_vcf/0001.vcf.gz",
+        intersect_vcf="results/intersect_vcf/0002.vcf.gz",
     conda:
         "envs/bcftools.yaml"
     shell:
         """
-        bcftools isec -p results/intersect_vcf {input.vcf_superresilient_merged} {input.vcf_diseased_merged}
+        bcftools isec -p results/intersect_vcf -Oz {input.vcf_superresilient_merged} {input.vcf_diseased_merged}
         """
 # rule exomiser:
 #     input:
