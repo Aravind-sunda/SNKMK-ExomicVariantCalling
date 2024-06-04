@@ -9,8 +9,8 @@
 # workdir: "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
 # names = ["BOSTON_CJD29_CJD29", "BOSTON_CJD40_CJD40"]  # Add your sample names here
 
-with open("data/samples.txt") as f:
-    names = [line.strip() for line in f] # Remember to create the samples.txt file in the data directory
+with open("data/All_Samples.txt") as f:
+    names = [line.strip() for line in f] # Remember to create the All_Samples.txt file in the data directory
 
 # --- Pipeline Rules --- #
 localrules: all,getreference,bam_index,variant_stats,cohort_sample_map
@@ -20,7 +20,10 @@ rule all:
         bam_index = expand("results/{sample}/{sample}.aligned_fixmates_sorted.bam.bai", sample = names),
         vcf_stats=expand("results/{sample}/{sample}.stats", sample = names),
         annotated_vcf="results/all_samples_genotyped_annotated.vcf.gz",
-        annotated_stats="results/all_samples_genotyped_annotated.vcf.gz.html"
+        annotated_stats="results/all_samples_genotyped_annotated.vcf.gz.html",
+        SR_unique_vcf="results/intersect_vcf/0000.vcf",
+        D_unique_vcf ="results/intersect_vcf/0001.vcf",
+        intersect_vcf="results/intersect_vcf/0002.vcf",
         ## Deepvariant variables
         # vcf_merged="results/deepvariant/vcf/dv_all_samples.vcf.gz",
         # gvcf_merged="results/deepvariant/gvcfs/dv_all_samples.g.vcf.gz",
@@ -243,7 +246,7 @@ rule genotype_gvcfs:
         -O {output.genotyped_vcf}
         """
 
-rule snpeff_annotate:
+rule vcf_snpeff_annotate:
     input:
         genotyped_vcf="results/all_samples_genotyped.vcf.gz",
         reference="reference/genome.fa"
@@ -259,28 +262,195 @@ rule snpeff_annotate:
         snpEff -Xmx8g -v -stats {output.annotated_stats} GRCh38.86 {input.genotyped_vcf} > {output.annotated_vcf}
         """   
 
-
-rule deepvariant_gvcf:
+rule vcf_split_samples:
     input:
-        bam="results/{sample}/{sample}.aligned_fixmates_sorted.bam",
-        ref="reference/genome.fa"
+        vcf="results/all_samples_genotyped_annotated.vcf.gz"
     output:
-        vcf="results/deepvariant/vcf/dv_{sample}.vcf.gz",
-        gvcf="results/deepvariant/gvcfs/dv_{sample}.g.vcf.gz"
-    params:
-        model="wes",   # {wgs, wes, pacbio, hybrid}
-        extra=""
-    threads: 8
+        vcf_superresilient = "results/split_vcf/vcf_superresilient.vcf.gz",
+        vcf_diseased = "results/split_vcf/vcf_diseased.vcf.gz",
+        vcf_healthy = "results/split_vcf/vcf_healthy.vcf.gz" 
     conda:
-    # uses an existing environment called deepvariant in saravind directory in the cjdgenomics project scc
-    # alternative choice is to use the deepvariant.yaml file in the envs directory. It does not work. need to find workaround with the rule below
-        "deepvariant"
-    log:
-        "logs/deepvariant/{sample}/stdout.log"
-    wrapper:
-        "v3.10.2/bio/deepvariant"
+        "envs/bcftools.yaml"
+    shell:
+        """
+        bcftools view -s data/Super_Resilient_Samples.txt -O z -o {output.vcf_superresilient} {input.vcf}
+        bcftools view -s data/Diseased_Samples.txt -O z -o {output.vcf_diseased} {input.vcf}
+        bcftools view -s data/Healthy_Samples.txt -O z -o {output.vcf_healthy} {input.vcf}
+        """
 
+rule vcf_split_snp_indel:
+    input:
+        vcf_superresilient = "results/split_vcf/vcf_superresilient.vcf.gz",
+        vcf_diseased = "results/split_vcf/vcf_diseased.vcf.gz",
+        vcf_healthy = "results/split_vcf/vcf_healthy.vcf.gz"
+    output:
+        vcf_superresilient_snp = "results/split_vcf/vcf_superresilient_snp.vcf.gz",
+        vcf_superresilient_indel = "results/split_vcf/vcf_superresilient_indel.vcf.gz",
+        vcf_diseased_snp = "results/split_vcf/vcf_diseased_snp.vcf.gz",
+        vcf_diseased_indel = "results/split_vcf/vcf_diseased_indel.vcf.gz",
+        vcf_healthy_snp = "results/split_vcf/vcf_healthy_snp.vcf.gz",
+        vcf_healthy_indel = "results/split_vcf/vcf_healthy_indel.vcf.gz"
+    conda:
+        "envs/gatk.yaml"
+    shell:
+        """
+        gatk SelectVariants -V {input.vcf_superresilient} -select-type SNP -O {output.vcf_superresilient_snp}
+        gatk SelectVariants -V {input.vcf_superresilient} -select-type INDEL -O {output.vcf_superresilient_indel}
+        gatk SelectVariants -V {input.vcf_diseased} -select-type SNP -O {output.vcf_diseased_snp}
+        gatk SelectVariants -V {input.vcf_diseased} -select-type INDEL -O {output.vcf_diseased_indel}
+        gatk SelectVariants -V {input.vcf_healthy} -select-type SNP -O {output.vcf_healthy_snp}
+        gatk SelectVariants -V {input.vcf_healthy} -select-type INDEL -O {output.vcf_healthy_indel}
+        """
+
+rule vcf_filter:
+    input:
+        reference="reference/genome.fa",
+        vcf_superresilient_snp = "results/split_vcf/vcf_superresilient_snp.vcf.gz",
+        vcf_diseased_snp = "results/split_vcf/vcf_diseased_snp.vcf.gz",
+        vcf_healthy_snp = "results/split_vcf/vcf_healthy_snp.vcf.gz",
+        vcf_superresilient_indel = "results/split_vcf/vcf_superresilient_indel.vcf.gz",
+        vcf_diseased_indel = "results/split_vcf/vcf_diseased_indel.vcf.gz",
+        vcf_healthy_indel = "results/split_vcf/vcf_healthy_indel.vcf.gz"
+    output:
+        vcf_superresilient_snp_filtered = "results/split_vcf/vcf_superresilient_snp_filtered.vcf.gz",
+        vcf_diseased_snp_filtered = "results/split_vcf/vcf_diseased_snp_filtered.vcf.gz",
+        vcf_healthy_snp_filtered = "results/split_vcf/vcf_healthy_snp_filtered.vcf.gz",
+        vcf_superresilient_indel_filtered = "results/split_vcf/vcf_superresilient_indel_filtered.vcf.gz",
+        vcf_diseased_indel_filtered = "results/split_vcf/vcf_diseased_indel_filtered.vcf.gz",
+        vcf_healthy_indel_filtered = "results/split_vcf/vcf_healthy_indel_filtered.vcf.gz"
+    conda:
+        "envs/gatk.yaml"
+    run:
+        inputs_snp = [input.vcf_superresilient_snp, input.vcf_diseased_snp, input.vcf_healthy_snp]
+        outputs_snp = [output.vcf_superresilient_snp_filtered, output.vcf_diseased_snp_filtered, output.vcf_healthy_snp_filtered]
+
+        inputs_indel = [input.vcf_superresilient_indel, input.vcf_diseased_indel, input.vcf_healthy_indel]
+        outputs_indel = [output.vcf_superresilient_indel_filtered, output.vcf_diseased_indel_filtered, output.vcf_healthy_indel_filtered]
+
+        # Loop over SNP inputs and outputs
+        for vcf_in, vcf_out in zip(inputs_snp, outputs_snp):
+            shell(f"""
+                gatk VariantFiltration \
+                -R {input.reference} \
+                -V {vcf_in} \
+                -O {vcf_out} \
+                --set-filtered-genotype-to-no-call true \
+                -filter-name "QD_filter" -filter "QD < 2.0" \
+                -genotype-filter-expression "DP < 7" \
+                -genotype-filter-name "DP_filter" \
+                -genotype-filter-expression "GQ < 20" \
+                -genotype-filter-name "GQ_filter" \
+                -filter-name "FS_filter" -filter "FS > 60.0" \
+                -filter-name "MQ_filter" -filter "MQ < 40.0" \
+                -filter-name "SOR_filter" -filter "SOR > 4.0" \
+                -filter-name "MQRankSum_filter" -filter "MQRankSum < -12.5" \
+                -filter-name "ReadPosRankSum_filter" -filter "ReadPosRankSum < -8.0"
+            """)
+
+        # Loop over INDEL inputs and outputs
+        for vcf_in, vcf_out in zip(inputs_indel, outputs_indel):
+            shell(f"""
+                gatk VariantFiltration \
+                -R {input.reference} \
+                -V {vcf_in} \
+                -O {vcf_out} \
+                --set-filtered-genotype-to-no-call true \
+                -filter-name "QD_filter" -filter "QD < 2.0" \
+                -genotype-filter-expression "DP < 10" \
+                -genotype-filter-name "DP_filter" \
+                -genotype-filter-expression "GQ < 20" \
+                -genotype-filter-name "GQ_filter" \
+                -filter-name "FS_filter" -filter "FS > 200.0" \
+                -filter-name "SOR_filter" -filter "SOR > 10.0"
+            """)
+
+rule merge_vcfs:
+    input:
+        vcf_superresilient_snp_filtered = "results/split_vcf/vcf_superresilient_snp_filtered.vcf.gz",
+        vcf_diseased_snp_filtered = "results/split_vcf/vcf_diseased_snp_filtered.vcf.gz",
+        vcf_healthy_snp_filtered = "results/split_vcf/vcf_healthy_snp_filtered.vcf.gz",
+        vcf_superresilient_indel_filtered = "results/split_vcf/vcf_superresilient_indel_filtered.vcf.gz",
+        vcf_diseased_indel_filtered = "results/split_vcf/vcf_diseased_indel_filtered.vcf.gz",
+        vcf_healthy_indel_filtered = "results/split_vcf/vcf_healthy_indel_filtered.vcf.gz"
+    output:
+        vcf_superresilient_merged = "results/filtered_vcf/vcf_superresilient_merged.vcf.gz",
+        vcf_diseased_merged = "results/filtered_vcf/vcf_diseased_merged.vcf.gz",
+        vcf_healthy_merged = "results/filtered_vcf/vcf_healthy_merged.vcf.gz"
+    conda:
+        "envs/gatk.yaml"
+    shell:
+        """
+        gatk SortVcf \
+        --INPUT {input.vcf_superresilient_snp_filtered} \
+        --INPUT {input.vcf_superresilient_indel_filtered} \
+        --OUTPUT {output.vcf_superresilient_merged}
+
+        gatk SortVcf \
+        --INPUT {input.vcf_diseased_snp_filtered} \
+        --INPUT {input.vcf_diseased_indel_filtered} \
+        --OUTPUT {output.vcf_diseased_merged}
+
+        gatk SortVcf \
+        --INPUT {input.vcf_healthy_snp_filtered} \
+        --INPUT {input.vcf_healthy_indel_filtered} \
+        --OUTPUT {output.vcf_healthy_merged}
+        """
+
+rule intersect_vcf:
+    input:
+        vcf_superresilient_merged = "results/filtered_vcf/vcf_superresilient_merged.vcf.gz",
+        vcf_diseased_merged = "results/filtered_vcf/vcf_diseased_merged.vcf.gz",
+        vcf_healthy_merged = "results/filtered_vcf/vcf_healthy_merged.vcf.gz"
+    output:
+        intersect_vcf = directory("results/intersect_vcf"),
+        SR_unique_vcf="results/intersect_vcf/0000.vcf",
+        D_unique_vcf ="results/intersect_vcf/0001.vcf",
+        intersect_vcf="results/intersect_vcf/0002.vcf",
+    conda:
+        "envs/bcftools.yaml"
+    shell:
+        """
+        bcftools isec -p results/intersect_vcf {input.vcf_superresilient_merged} {input.vcf_diseased_merged}
+        """
+# rule exomiser:
+#     input:
+#         SR_unique_vcf="results/intersect_vcf/0000.vcf",
+#         D_unique_vcf="results/intersect_vcf/0001.vcf",
+#         intersect_vcf="results/intersect_vcf/0002.vcf"
+#     output:
+#     conda:
+#         "envs/exomiser.yaml"
+#     shell:
+#         """
+#         java -Xms2g -Xmx4g -jar exomiser-cli-12.1.0.jar \
+#         --analysis exome \
+#         --ped /path/to/pedigree.ped \
+#         --in /path/to/input.vcf \
+#         --out /path/to/output.vcf \
+#         --data-dir /path/to/data_dir
+#         """
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # --- Deepvariant pipeline --- #
+# rule deepvariant_gvcf:
+#     input:
+#         bam="results/{sample}/{sample}.aligned_fixmates_sorted.bam",
+#         ref="reference/genome.fa"
+#     output:
+#         vcf="results/deepvariant/vcf/dv_{sample}.vcf.gz",
+#         gvcf="results/deepvariant/gvcfs/dv_{sample}.g.vcf.gz"
+#     params:
+#         model="wes",   # {wgs, wes, pacbio, hybrid}
+#         extra=""
+#     threads: 8
+#     conda:
+#     # uses an existing environment called deepvariant in saravind directory in the cjdgenomics project scc
+#     # alternative choice is to use the deepvariant.yaml file in the envs directory. It does not work. need to find workaround with the rule below
+#         "deepvariant"
+#     log:
+#         "logs/deepvariant/{sample}/stdout.log"
+#     wrapper:
+#         "v3.10.2/bio/deepvariant"
 
 # Adapted from : https://github.com/yiolino/snakemake-deepvariant/tree/master
 # rule call_variants(wrapper):
@@ -362,6 +532,3 @@ rule deepvariant_gvcf:
 #         # --intermediate_results_dir {input.temp_dir} \
 #         # --dry_run=false
 #         # """
-
-
-# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
