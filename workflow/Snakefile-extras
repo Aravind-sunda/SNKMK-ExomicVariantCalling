@@ -99,3 +99,24 @@
 #         # --intermediate_results_dir {input.temp_dir} \
 #         # --dry_run=false
 #         # """
+
+
+
+
+
+
+# Define the rule to specify the final output
+rule all:
+    input:
+        "data/sequence.fasta.fai"
+
+# Define the rule for indexing the FASTA file
+rule indexing:
+    input:
+        "data/sequence.fasta"
+    output:
+        "data/sequence.fasta.fai"
+    conda:
+        "envs/samtools.yaml"
+    shell:
+        "samtools faidx {input}"
