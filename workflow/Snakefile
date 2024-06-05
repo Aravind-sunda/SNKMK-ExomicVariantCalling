@@ -26,6 +26,7 @@ rule all:
         # vcf=expand("results/deepvariant/{sample}/dv_{sample}.vcf.gz",sample = "BOSTON_CJD29_CJD29"),
         # gvcf=expand("results/deepvariant/{sample}/dv_{sample}.g.vcf.gz",sample = "BOSTON_CJD29_CJD29")
 
+
 rule cram_to_bam:
     input:
         cram="data/{sample}.aligned.cram",
