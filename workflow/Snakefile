@@ -263,9 +263,9 @@ rule vcf_split_samples:
         "envs/bcftools.yaml"
     shell:
         """
-        bcftools view -s data/Super_Resilient_Samples.txt -O z -o {output.vcf_superresilient} {input.vcf}
-        bcftools view -s data/Diseased_Samples.txt -O z -o {output.vcf_diseased} {input.vcf}
-        bcftools view -s data/Healthy_Samples.txt -O z -o {output.vcf_healthy} {input.vcf}
+        bcftools view --samples-file data/Super_Resilient_Samples.txt -O z -o {output.vcf_superresilient} {input.vcf}
+        bcftools view --samples-file data/Diseased_Samples.txt -O z -o {output.vcf_diseased} {input.vcf}
+        bcftools view --samples-file data/Healthy_Samples.txt -O z -o {output.vcf_healthy} {input.vcf}
         """
 
 rule vcf_split_snp_indel:
