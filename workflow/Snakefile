@@ -262,6 +262,7 @@ rule vcf_split_samples:
     conda:
         "envs/bcftools.yaml"
     shell:
+    # remember -S should be used for a file and -s should be used for a comma seperated sample list
         """
         bcftools view --samples-file data/Super_Resilient_Samples.txt -O z -o {output.vcf_superresilient} {input.vcf}
         bcftools view --samples-file data/Diseased_Samples.txt -O z -o {output.vcf_diseased} {input.vcf}
