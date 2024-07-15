@@ -269,6 +269,20 @@ rule vcf_split_samples:
         bcftools view --samples-file data/Healthy_Samples.txt -O z -o {output.vcf_healthy} {input.vcf}
         """
 
+rule vcf_index:
+    input:
+        vcf_superresilient = "results/split_vcf/vcf_superresilient.vcf.gz",
+        vcf_diseased = "results/split_vcf/vcf_diseased.vcf.gz",
+        vcf_healthy = "results/split_vcf/vcf_healthy.vcf.gz"
+    output:
+        
+    conda:
+        "envs/bcftools.yaml"
+    shell:
+        """
+        bcftools index {input.vcf}
+        """
+
 rule vcf_split_snp_indel:
     input:
         vcf_superresilient = "results/split_vcf/vcf_superresilient.vcf.gz",

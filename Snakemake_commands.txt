@@ -1,0 +1,61 @@
+module load miniconda/23.11.0
+module load snakemake/8.11.3
+mamba activate /share/pkg.8/snakemake/8.11.3/install/snakemake
+
+snakemake -s Snakefile --sdm conda --executor cluster-generic --cluster-generic-submit-cmd "qsub -P cjdgenomics -pe omp 8 -l mem_per_core=8G -cwd -j y -N CJD29pipeline" --jobs 2 --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
+
+
+Git Commands
+1) chmod ugo+rwx <foldername> -> use minus Rwx to remove permissions
+2) Git add . —> adds all the changes in the folder to the git
+3)Git commit -m “” —> commits the changes. Remember to add the message in quotes
+4) Git status —> shows the changes which are made and shows all commits
+5) Git push —> pushes the changes
+6) git clone <link>
+7)git reset <file>
+8)git reset --> will reset all added files
+9)  git reset --soft HEAD~2
+9) rm -fr .git —> will remove the .git folder from 
+
+Python and Snakemake
+1) sudo python3 -m pip install library_name
+2) snakemake --forceall --dag | dot -Tpdf > images/dag.pdf
+3) snakemake --forceall --rulegraph -F | dot -Tpng > images/rulegraph.png
+4) 
+
+
+
+Loading Modules
+
+module load miniconda/23.11.0
+module load snakemake/8.11.3
+mamba activate /share/pkg.8/snakemake/8.11.3/install/snakemake
+conda config --set channel_priority strict
+pip install snakemake-executor-plugin-cluster-generic
+
+
+snakemake --conda-base-path
+
+
+pip install snakemake-executor-plugin-cluster-generic
+
+
+—unlock will remove the lock caused by reaper
+snakemake -s Snakefile --delete-all-output
+
+
+# The command below does not work. Does not load normal SGE modules.
+# snakemake -s Snakefile --sdm env-modules --executor cluster-generic --cluster-generic-submit-cmd "qsub -P cjdgenomics -pe omp 8 -l mem_per_core=8G -cwd -j y -N CJD29pipeline" --jobs 2 --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/" --latency-wait 30 
+
+
+snakemake -s workflow/Snakefile -np -d "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/"
+
+# Number of cores necessary in order for sumission to use the correct number of cores that it is requesting
+snakemake -s workflow/Snakefile --cores 8 --sdm conda --executor cluster-generic --cluster-generic-submit-cmd "qsub -P cjdgenomics -pe omp {threads} -l mem_per_core=8G -cwd -j y -N varcallpipeline --jobs 5 --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/" --latency-wait 100
+
+This would help to prevent runs of rules if the code has been changed but you do not want to change the output
+--rerun-triggers mtime 
+
+
+
+snakemake --forceall --dag --directory "/restricted/projectnb/cjdgenomics/CJD_GenomicsVariantCalling_20240430/" | dot -Tpdf > dag.pdf
